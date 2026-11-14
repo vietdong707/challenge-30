@@ -1,0 +1,1985 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Challenge 30 ngày (dùng thử)</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<style>
+/* Layout: one phone-width column. A 30-tick lane ruler under the big day count ties the Today and Calendar views together; fixed bottom tab bar. */
+:root{
+  --bg:#F1F4F9;
+  --surface:#FFFFFF;
+  --surface-2:#E6EBF3;
+  --ink:#0E1626;
+  --ink-2:#4A5568;
+  --line:#D3DAE6;
+  --accent:#2145E6;
+  --accent-soft:#D9E2FF;
+  --part:#A8BBFF;
+  --on-accent:#FFFFFF;
+  --warn:#B8420F;
+  --warn-soft:#FBE3D6;
+  --font-display:'Barlow Condensed','Arial Narrow','Roboto Condensed',system-ui,sans-serif;
+  --font-body:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
+  --fs-xs:.75rem;
+  --fs-sm:.875rem;
+  --fs-md:1rem;
+  --fs-lg:1.25rem;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B101A;
+    --surface:#141B29;
+    --surface-2:#1E2738;
+    --ink:#E8EEFA;
+    --ink-2:#9FACC2;
+    --line:#2B3548;
+    --accent:#7691FF;
+    --accent-soft:#1C2A5A;--part:#5568C8;
+    --on-accent:#0A1230;
+    --warn:#FF9E72;
+    --warn-soft:#3A2218;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B101A;
+  --surface:#141B29;
+  --surface-2:#1E2738;
+  --ink:#E8EEFA;
+  --ink-2:#9FACC2;
+  --line:#2B3548;
+  --accent:#7691FF;
+  --accent-soft:#1C2A5A;--part:#5568C8;
+  --on-accent:#0A1230;
+  --warn:#FF9E72;
+  --warn-soft:#3A2218;
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:var(--fs-md);
+  line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:20px 112px;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:520px;margin:0 auto}
+.view{display:flex;flex-direction:column;gap:24px}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);border:0;white-space:nowrap}
+.ico{display:inline-flex;width:20px;height:20px;flex:none}
+.ico svg{width:100%;height:100%}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible,.task input:focus-visible + .box{outline:2px solid var(--accent);outline-offset:2px}
+
+h1,h2{margin:0}
+.title{font-family:var(--font-display);font-weight:700;font-size:2.5rem;line-height:1;text-transform:uppercase;letter-spacing:.02em;text-wrap:balance}
+h2{font-family:var(--font-display);font-weight:700;font-size:var(--fs-lg);text-transform:uppercase;letter-spacing:.06em;text-wrap:balance}
+.eyebrow{margin:0;font-size:var(--fs-xs);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.hint{margin:0;font-size:var(--fs-sm);color:var(--ink-2)}
+
+/* Hero */
+.hero{display:flex;flex-direction:column;gap:6px}
+.dayrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+.dayno{display:flex;align-items:baseline;gap:4px}
+.daynum{font-family:var(--font-display);font-weight:700;font-size:clamp(4.5rem,22vw,6.5rem);line-height:.85;font-variant-numeric:tabular-nums}
+.of{font-family:var(--font-display);font-weight:600;font-size:2rem;color:var(--ink-2)}
+.stats{display:flex;gap:20px;text-align:right}
+.stat b{display:block;font-family:var(--font-display);font-weight:700;font-size:2.25rem;line-height:1;font-variant-numeric:tabular-nums}
+.stat span{font-size:var(--fs-xs);color:var(--ink-2)}
+.lane{display:flex;align-items:flex-end;gap:2px;height:28px;margin-top:14px}
+.lane i{flex:1;min-width:0;height:14px;border-radius:2px;background:var(--surface-2)}
+.lane i.done{background:var(--accent)}
+.lane i.part{background:linear-gradient(to top,var(--accent) calc(var(--p,0) * 100%),var(--surface-2) 0)}
+.lane i.miss{background:repeating-linear-gradient(135deg,var(--surface-2) 0 3px,var(--line) 3px 5px)}
+.lane i.now{height:28px;box-shadow:inset 0 0 0 2px var(--ink)}
+.lane-ends{display:flex;justify-content:space-between;font-size:var(--fs-xs);color:var(--ink-2);font-variant-numeric:tabular-nums}
+
+/* Notes and buttons */
+.note{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;background:var(--surface-2);font-size:var(--fs-sm)}
+.note.warn{background:var(--warn-soft);color:var(--warn)}
+.note span{min-width:0}
+.btn{min-height:48px;padding:0 18px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.small{min-height:40px;padding:0 14px;font-size:var(--fs-sm);flex:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.danger{color:var(--warn);border-color:var(--warn)}
+.btn.armed{background:var(--warn);border-color:var(--warn);color:var(--surface)}
+.btn:disabled,.iconbtn:disabled{opacity:.4;cursor:default}
+.iconbtn{width:44px;height:44px;flex:none;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);display:inline-flex;align-items:center;justify-content:center}
+
+/* Date bar */
+.datebar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.datetext{font-weight:600;text-align:center;min-width:0}
+
+/* Tasks */
+.section{display:flex;flex-direction:column;gap:12px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.count{font-family:var(--font-display);font-weight:700;font-size:var(--fs-lg);font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.progress{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.tasks{display:grid;gap:8px}
+.task{position:relative;display:flex;align-items:center;gap:14px;min-height:64px;padding:12px 16px;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,border-color .15s}
+.task .box{flex:none;width:32px;height:32px;border-radius:9px;border:2px solid var(--ink-2);display:grid;place-items:center;color:var(--on-accent);transition:background .15s,border-color .15s}
+.task .box .ico{width:18px;height:18px;opacity:0;transform:scale(.6);transition:opacity .15s,transform .15s}
+.task input:checked + .box{background:var(--accent);border-color:var(--accent)}
+.task input:checked + .box .ico{opacity:1;transform:scale(1)}
+.task .tname{min-width:0;overflow-wrap:anywhere;font-weight:500;font-size:1.0625rem}
+.task.is-done{background:var(--accent-soft);border-color:var(--accent-soft)}
+.task.is-done .tname{color:var(--ink-2)}
+.task.is-locked{opacity:.6;cursor:default}
+.empty{padding:20px;border:1.5px dashed var(--line);border-radius:14px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.chip{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:var(--fs-xs);font-weight:600}
+
+/* Calories */
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:4px}
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);font-size:var(--fs-xs);font-weight:600;white-space:nowrap}
+.badge.ok{background:var(--accent-soft);color:var(--accent)}
+.badge.warn{background:var(--warn-soft);color:var(--warn)}
+.mealblock{display:flex;flex-direction:column;gap:10px;padding:14px 0;border-bottom:1px solid var(--line)}
+.mealblock:first-child{padding-top:0}
+.mhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.mhead h3{margin:0;font-size:var(--fs-md);font-weight:600}
+.mk{font-family:var(--font-display);font-weight:700;font-size:1.5rem;line-height:1;font-variant-numeric:tabular-nums}
+.mk.skipped{font-family:var(--font-body);font-size:var(--fs-sm);font-weight:500;color:var(--ink-2)}
+.items{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:12px;background:var(--bg)}
+.iname,.iqty,.ikcal{min-width:0;min-height:48px;padding:0 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface)}
+.iname{width:100%}
+.irow{display:flex;align-items:center;gap:8px}
+.iq,.ik{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.ik{justify-content:flex-end}
+.iqty,.ikcal{width:100%;text-align:right;font-variant-numeric:tabular-nums}
+.unit{color:var(--ink-2);font-size:var(--fs-sm);flex:none}
+.kv{font-family:var(--font-display);font-weight:700;font-size:1.5rem;line-height:1;font-variant-numeric:tabular-nums}
+.isub{margin:0;font-size:var(--fs-xs);color:var(--ink-2);min-height:1em}
+.mfoot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.skip{display:flex;align-items:center;gap:8px;min-height:44px;font-size:var(--fs-sm);color:var(--ink-2)}
+.skip input{width:22px;height:22px;accent-color:var(--accent)}
+input:disabled,select:disabled{opacity:.6}
+.total{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:14px}
+.total .lbl{font-weight:600}
+.total b{font-family:var(--font-display);font-weight:700;font-size:2.25rem;line-height:1;font-variant-numeric:tabular-nums}
+.total .of2{color:var(--ink-2);font-size:var(--fs-sm);font-variant-numeric:tabular-nums}
+.meter{height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden;margin-top:8px}
+.meter i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.meter.over i{background:var(--warn)}
+.calmsg{margin:8px 0 0;font-size:var(--fs-sm);color:var(--ink-2)}
+.calmsg.over{color:var(--warn)}
+.card .callout{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-top:10px;padding:12px;border-radius:12px;background:var(--surface-2)}
+.card .callout .hint{color:var(--ink)}
+.card .callout[hidden]{display:none}
+
+/* Calendar */
+.cal-stats{display:flex;gap:24px;flex-wrap:wrap}
+.cal-stats .stat{text-align:left}
+.wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:4px}
+.wk span{text-align:center;font-size:var(--fs-xs);font-weight:600;letter-spacing:.06em;color:var(--ink-2)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cell{position:relative;aspect-ratio:1 / 1.2;min-width:0;max-width:100%;padding:0;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;overflow:hidden}
+.cell.blank{border:0;background:transparent}
+.cell .n{font-family:var(--font-display);font-weight:700;font-size:1.375rem;line-height:1;font-variant-numeric:tabular-nums}
+.cell .d{font-size:.6875rem;line-height:1;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.cell .ico{position:absolute;top:3px;right:3px;width:11px;height:11px}
+.cell .wdot{position:absolute;left:4px;bottom:4px;width:6px;height:6px;border-radius:50%;background:currentColor}
+.cell.done{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.cell.done .d{color:var(--on-accent);opacity:.85}
+.cell.part{background:linear-gradient(to top,var(--part) calc(var(--p,0) * 100%),var(--surface) 0);border-color:var(--accent)}
+.cell.part .n,.cell.part .d{color:var(--ink)}
+.cell.miss{background:repeating-linear-gradient(135deg,var(--surface) 0 6px,var(--surface-2) 6px 8px)}
+.cell.future{background:transparent;border-style:dashed;color:var(--ink-2)}
+.cell.now{border-color:var(--ink);border-width:2.5px}
+.cell.picked{outline:2.5px solid var(--accent);outline-offset:1px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:var(--fs-xs);color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--line);background:var(--surface);display:inline-block}
+.sw.done{background:var(--accent);border-color:var(--accent)}
+.sw.part{background:linear-gradient(to top,var(--part) 55%,var(--surface) 0);border-color:var(--accent)}
+.sw.miss{background:repeating-linear-gradient(135deg,var(--surface) 0 3px,var(--line) 3px 5px)}
+.sw.now{border-color:var(--ink);border-width:2.5px}
+.sw.picked{outline:2px solid var(--accent);outline-offset:1px}
+.sw.wd{border:0;background:radial-gradient(circle,var(--ink) 0 32%,transparent 36%)}
+.card.daypanel{gap:12px}
+.dp-head{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap}
+.dp-title{margin:0;font-weight:600;min-width:0}
+.dp-row{display:flex;align-items:center;gap:8px}
+.dp-row label{flex:none;min-width:4.5rem}
+.dp-row .fld{width:auto;flex:1 1 0;min-width:0}
+.dp-row .fld.wf{text-align:right;font-variant-numeric:tabular-nums}
+.wbox{display:flex;flex-direction:column;gap:12px}
+.wchart{width:100%;height:auto;display:block}
+.wchart .gl{stroke:var(--line);stroke-width:1;fill:none}
+.wchart text{fill:var(--ink-2);font-size:11px;font-family:var(--font-body)}
+.wchart .ln{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.wchart .pt{fill:var(--accent)}
+.wchart .pt.last{stroke:var(--bg);stroke-width:2}
+.tdee{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 8px}
+.tdee label{display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);font-weight:600;color:var(--ink-2);min-width:0}
+.tdee .full{grid-column:1 / -1}
+.resrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.resrows .resrow:last-child{border-bottom:0}
+.resrow span{min-width:0}
+.resrow b{font-family:var(--font-display);font-weight:700;font-size:1.5rem;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.resrow.big b{font-size:2.25rem;color:var(--accent)}
+.resrow.big span:first-child{font-weight:600}
+.warnline{margin:8px 0 0;padding:10px 12px;border-radius:10px;background:var(--warn-soft);color:var(--warn);font-size:var(--fs-sm)}
+
+/* Edit */
+.elist{display:flex;flex-direction:column;gap:8px}
+.erow{display:flex;align-items:center;gap:8px}
+.tinput,.fld,.sel{flex:1;min-width:0;min-height:48px;padding:0 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface)}
+.fld,.sel{flex:none;width:100%}
+.fld-row{display:flex;align-items:center;gap:8px}
+.fld-row .fld{width:9rem;text-align:right;font-variant-numeric:tabular-nums}
+.fld-row span{color:var(--ink-2)}
+textarea.fld{padding:10px 12px;min-height:6.5rem;resize:vertical;font-size:var(--fs-sm);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px}
+.msg{margin:0;font-size:var(--fs-sm);color:var(--ink-2);min-height:1.5em}
+.group{display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid var(--line)}
+.mapbox{display:flex;flex-direction:column;gap:12px}
+.mapgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 8px}
+.mapgrid label{display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);font-weight:600;color:var(--ink-2)}
+.preview{margin:0;padding:12px;list-style:none;border-radius:12px;background:var(--surface-2);font-size:var(--fs-sm);display:flex;flex-direction:column;gap:4px}
+.preview li{min-width:0;overflow-wrap:anywhere}
+.foodbox summary{min-height:44px;display:flex;align-items:center;font-weight:600;cursor:pointer}
+.foodbox .flist{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px;font-size:var(--fs-sm)}
+.foodbox .flist li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--line)}
+.foodbox .flist li span:first-child{min-width:0;overflow-wrap:anywhere}
+.foodbox .flist li span:last-child{color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+@media (max-width:420px){ .mapgrid{grid-template-columns:minmax(0,1fr)} }
+
+/* Tab bar */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding:8px max(16px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.tabs .inner{display:flex;gap:6px;width:100%;max-width:520px;margin:0 auto}
+.tabs button{flex:1;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:0;border-radius:12px;background:transparent;color:var(--ink-2);font-size:var(--fs-xs);font-weight:600}
+.tabs button[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
+.tabs svg{width:22px;height:22px}
+
+.sync{display:flex;align-items:center;gap:8px;min-height:20px;margin-bottom:12px;font-size:var(--fs-xs);font-weight:500;color:var(--ink-2)}
+.sync::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--ink-2)}
+.sync[data-s="ok"]::before{background:var(--accent)}
+.sync[data-s="offline"],.sync[data-s="error"],.sync[data-s="full"]{color:var(--warn)}
+.sync[data-s="offline"]::before,.sync[data-s="error"]::before,.sync[data-s="full"]::before{background:var(--warn)}
+
+.pin{display:flex;align-items:center;gap:14px;min-height:64px;padding:12px 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer}
+.pin input{flex:none;width:26px;height:26px;accent-color:var(--accent)}
+.pin .pt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.segs{display:flex;gap:8px}
+.segs .btn{flex:1 1 0;min-width:0;padding:0 8px}
+.fman{display:flex;flex-direction:column;gap:10px}
+.fsearch{display:flex;gap:8px;align-items:center}
+.fsearch .fld{flex:1 1 auto;width:auto;min-width:0}
+.fscroll{max-height:22rem;overflow-y:auto;overscroll-behavior:contain;border:1.5px solid var(--line);border-radius:12px;background:var(--surface)}
+.flist{margin:0;padding:0;list-style:none}
+.flist li{border-bottom:1px solid var(--line)}
+.flist li:last-child{border-bottom:0}
+.frow{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:48px;padding:8px 12px;border:0;background:transparent;text-align:left}
+.frow:hover{background:var(--surface-2)}
+.frow .fn{min-width:0;overflow-wrap:anywhere;font-weight:500}
+.frow .fk{flex:none;color:var(--ink-2);font-size:var(--fs-sm);font-variant-numeric:tabular-nums;white-space:nowrap}
+.fempty{padding:14px 12px;color:var(--ink-2);font-size:var(--fs-sm)}
+.fmorerow{padding:8px 12px}
+.fedit{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:14px;background:var(--surface-2)}
+.fedit .fh{margin:0;font-size:var(--fs-md);font-weight:600}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 8px}
+.fgrid label{display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);font-weight:600;color:var(--ink-2);min-width:0}
+.fgrid .full{grid-column:1 / -1}
+.isave{align-self:flex-start}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+</style>
+
+<div class="wrap"><div id="sync" class="sync" role="status" aria-live="polite"></div><main id="main" tabindex="-1"></main></div>
+<nav class="tabs" aria-label="Điều hướng chính">
+  <div class="inner">
+    <button type="button" data-tab="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg><span>Cập nhật</span></button>
+    <button type="button" data-tab="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>Lịch</span></button>
+    <button type="button" data-tab="edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Cấu hình</span></button>
+  </div>
+</nav>
+
+<script>
+(function(){
+'use strict';
+
+const KEY='challenge30.v1';
+const FKEY='challenge30.foods.v1';
+const DAYS=30;
+const MEALS=[{id:'s',name:'Bữa sáng'},{id:'t',name:'Bữa trưa'},{id:'e',name:'Bữa tối'}];
+const ACT=[
+  {v:1.2,t:'Ít vận động (ngồi nhiều, ít tập)'},
+  {v:1.375,t:'Nhẹ (tập 1–3 buổi mỗi tuần)'},
+  {v:1.55,t:'Vừa (tập 3–5 buổi mỗi tuần)'},
+  {v:1.725,t:'Nhiều (tập 6–7 buổi mỗi tuần)'},
+  {v:1.9,t:'Rất nhiều (tập nặng mỗi ngày hoặc lao động chân tay)'}
+];
+const WD=['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'];
+const HASH={today:'cap-nhat',cal:'lich',edit:'cau-hinh'};
+const MAX_FOODS=3000;
+
+/* ---------- Theme (stored on this device only) ---------- */
+const TKEY='challenge30.theme';
+const hostTheme=document.documentElement.getAttribute('data-theme');
+function getThemePref(){
+  try{ const v=localStorage.getItem(TKEY); if(v==='light'||v==='dark') return v; }catch(e){}
+  return 'system';
+}
+function applyTheme(v){
+  const r=document.documentElement;
+  if(v==='light'||v==='dark') r.setAttribute('data-theme',v);
+  else if(hostTheme) r.setAttribute('data-theme',hostTheme);
+  else r.removeAttribute('data-theme');
+}
+function setThemePref(v){
+  try{ if(v==='system') localStorage.removeItem(TKEY); else localStorage.setItem(TKEY,v); }catch(e){}
+  applyTheme(v);
+}
+applyTheme(getThemePref());
+
+/* ---------- Dates ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const keyOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseKey=k=>{const p=k.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);};
+const todayKey=()=>keyOf(new Date());
+const addDays=(k,n)=>{const d=parseKey(k);d.setDate(d.getDate()+n);return keyOf(d);};
+const diffDays=(a,b)=>{const x=a.split('-').map(Number),y=b.split('-').map(Number);return Math.round((Date.UTC(y[0],y[1]-1,y[2])-Date.UTC(x[0],x[1]-1,x[2]))/864e5);};
+const isKey=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&keyOf(parseKey(s))===s;
+const fmtDM=k=>{const p=k.split('-');return p[2]+'/'+p[1];};
+const fmtDMY=k=>{const p=k.split('-');return p[2]+'/'+p[1]+'/'+p[0];};
+const weekday=k=>WD[parseKey(k).getDay()];
+const fmtNum=n=>Number(n).toLocaleString('vi-VN',{maximumFractionDigits:1});
+const newId=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+/* ---------- Numbers and text ---------- */
+function parseNum(s){
+  s=String(s==null?'':s).replace(/[^\d.,\-]/g,'');
+  if(!/\d/.test(s)) return NaN;
+  const hasC=s.indexOf(',')>=0,hasD=s.indexOf('.')>=0;
+  if(hasC&&hasD){
+    if(s.lastIndexOf(',')>s.lastIndexOf('.')) s=s.replace(/\./g,'').replace(',','.');
+    else s=s.replace(/,/g,'');
+  }else if(hasC){
+    s=/^-?[1-9]\d{0,2}(,\d{3})+$/.test(s)?s.replace(/,/g,''):s.replace(',','.');
+  }else if(hasD){
+    if(/^-?[1-9]\d{0,2}(\.\d{3})+$/.test(s)) s=s.replace(/\./g,'');
+  }
+  const n=Number(s);
+  return isFinite(n)?n:NaN;
+}
+const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/\s+/g,' ').trim();
+
+/* ---------- Food table ---------- */
+let FOODS=[];
+let FOOD_MAP=new Map();
+function cleanFood(f){
+  if(!f||typeof f.n!=='string') return null;
+  const b=Number(f.b),k=Number(f.k);
+  if(!f.n.trim()||!isFinite(b)||b<=0||!isFinite(k)||k<0) return null;
+  return {n:f.n.trim().slice(0,80),b,u:(typeof f.u==='string'&&f.u.trim()?f.u.trim():'g').slice(0,12),k};
+}
+function setFoods(list){
+  const m=new Map();
+  for(const f of list){ const c=cleanFood(f); if(c) m.set(norm(c.n),c); }
+  FOODS=Array.from(m.values()).slice(0,MAX_FOODS);
+  FOOD_MAP=new Map(FOODS.map(f=>[norm(f.n),f]));
+}
+function loadFoods(){
+  try{ const raw=localStorage.getItem(FKEY); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) setFoods(a); } }catch(e){}
+}
+let syncHook=null;
+function localSaveFoods(){
+  try{ localStorage.setItem(FKEY,JSON.stringify(FOODS)); }catch(e){ saveOK=false; }
+}
+function saveFoods(){ localSaveFoods(); if(syncHook) syncHook(); }
+const lookup=name=>name?FOOD_MAP.get(norm(name)):undefined;
+
+/* ---------- State ---------- */
+const DEFAULT_TASKS=()=>[
+  {id:'t1',name:'Tập luyện 30 phút',from:''},
+  {id:'t2',name:'Chạy 2 km',from:''},
+  {id:'t3',name:'10.000 bước chân',from:''}
+];
+const fresh=()=>({v:2,start:todayKey(),target:null,targetFrom:'',tasks:DEFAULT_TASKS(),days:{},weights:{},profile:{},calGoal:true,prevTarget:null});
+
+function cleanItem(i){
+  if(!i||typeof i!=='object') return null;
+  return {
+    id:String(i.id||newId()).slice(0,30),
+    n:typeof i.n==='string'?i.n.slice(0,80):'',
+    q:(typeof i.q==='number'&&isFinite(i.q)&&i.q>=0)?i.q:null,
+    k:(typeof i.k==='number'&&isFinite(i.k)&&i.k>=0)?Math.round(i.k):0,
+    m:!!i.m
+  };
+}
+function normalize(o){
+  if(!o||typeof o!=='object'||!isKey(o.start)) return null;
+  const seen=new Set();
+  const tasks=[];
+  if(Array.isArray(o.tasks)){
+    for(const t of o.tasks){
+      if(!t||typeof t.id!=='string'||typeof t.name!=='string'||seen.has(t.id)) continue;
+      seen.add(t.id);
+      tasks.push({id:t.id.slice(0,40),name:t.name.slice(0,80),from:isKey(t.from)?t.from:''});
+      if(tasks.length>=40) break;
+    }
+  }
+  const days={};
+  if(o.days&&typeof o.days==='object'){
+    for(const k of Object.keys(o.days)){
+      if(!isKey(k)) continue;
+      const r=o.days[k]||{};
+      const done=Array.isArray(r.done)?r.done.filter(x=>typeof x==='string'):[];
+      const meals={};
+      if(r.meals&&typeof r.meals==='object'){
+        for(const m of MEALS){
+          const v=r.meals[m.id];
+          if(typeof v==='number'&&isFinite(v)&&v>=0){
+            // data saved by the first version: one number per meal
+            meals[m.id]=v===0?{items:[],skip:true}:{items:[{id:'mig-'+m.id,n:'Tổng bữa (nhập tay)',q:null,k:Math.round(v),m:true}],skip:false};
+          }else if(v&&typeof v==='object'){
+            const items=Array.isArray(v.items)?v.items.slice(0,30).map(cleanItem).filter(Boolean):[];
+            meals[m.id]={items,skip:!!v.skip};
+          }
+        }
+      }
+      const rec={done,meals};
+      if(typeof r.tgt==='number'&&r.tgt>0) rec.tgt=Math.round(r.tgt);
+      days[k]=rec;
+    }
+  }
+  const target=(typeof o.target==='number'&&o.target>0)?Math.round(o.target):null;
+  const weights={};
+  if(o.weights&&typeof o.weights==='object'){
+    for(const k of Object.keys(o.weights)){
+      const w=o.weights[k];
+      if(isKey(k)&&typeof w==='number'&&isFinite(w)&&w>=20&&w<=300) weights[k]=Math.round(w*10)/10;
+    }
+  }
+  const pr=(o.profile&&typeof o.profile==='object')?o.profile:{};
+  const profile={};
+  if(pr.sex==='m'||pr.sex==='f') profile.sex=pr.sex;
+  [['age',10,100],['h',100,250],['w',20,300],['def',0,1500]].forEach(a=>{ const v=pr[a[0]]; if(typeof v==='number'&&isFinite(v)&&v>=a[1]&&v<=a[2]) profile[a[0]]=v; });
+  if(ACT.some(a=>a.v===pr.act)) profile.act=pr.act;
+  const pt=(typeof o.prevTarget==='number'&&o.prevTarget>0)?Math.round(o.prevTarget):null;
+  return {v:2,start:o.start,target,targetFrom:target?(isKey(o.targetFrom)?o.targetFrom:o.start):'',tasks,days,weights,profile,calGoal:o.calGoal!==false,prevTarget:pt};
+}
+
+let saveOK=true;
+try{ localStorage.setItem(KEY+'.t','1'); localStorage.removeItem(KEY+'.t'); }catch(e){ saveOK=false; }
+
+function load(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw){ const n=normalize(JSON.parse(raw)); if(n) return n; }
+  }catch(e){}
+  return fresh();
+}
+let S=load();
+loadFoods();
+function localSave(){
+  try{ localStorage.setItem(KEY,JSON.stringify(S)); saveOK=true; }catch(e){ saveOK=false; }
+}
+function save(){ localSave(); if(syncHook) syncHook(); }
+
+let tab='today';
+let viewKey=null; // null means follow today
+let calSel=null; // date picked in the calendar
+
+/* ---------- Rules ---------- */
+function calorieReq(key){
+  const r=S.days[key];
+  if(r&&r.tgt!==undefined) return r.tgt;
+  if(S.target!==null&&key>=S.targetFrom) return S.target;
+  return null;
+}
+function setTarget(n){
+  const today=todayKey();
+  if(S.target!==null){
+    for(const k of Object.keys(S.days)){
+      const r=S.days[k];
+      if(k<today&&k>=S.targetFrom&&r.tgt===undefined) r.tgt=S.target;
+    }
+    if(S.days[today]) delete S.days[today].tgt;
+  }
+  if(n===null){ S.target=null; S.targetFrom=''; }
+  else{
+    if(S.target===null) S.targetFrom=today>S.start?today:S.start;
+    S.target=n;
+  }
+  save();
+}
+function setCalGoal(on){
+  if(on===(S.calGoal!==false)) return;
+  if(!on){
+    const t=S.target;
+    setTarget(null);
+    S.calGoal=false;
+    S.prevTarget=t;
+  }else{
+    S.calGoal=true;
+    const pt=S.prevTarget;
+    S.prevTarget=null;
+    if(pt) setTarget(pt);
+  }
+  save();
+}
+const tasksFor=key=>S.tasks.filter(t=>!t.from||key>=t.from);
+const isFilled=i=>i.k>0||(i.n.trim()!==''&&i.q!==null);
+
+function mealInfo(r,mid){
+  const md=(r.meals||{})[mid];
+  const items=(md&&md.items)||[];
+  const filled=items.filter(isFilled);
+  const total=filled.reduce((a,i)=>a+i.k,0);
+  const skip=!!(md&&md.skip);
+  return {filled:filled.length,total,skip,logged:filled.length>0||skip};
+}
+
+function status(key){
+  const r=S.days[key]||{};
+  const done=r.done||[];
+  const tasks=tasksFor(key);
+  const tDone=tasks.reduce((n,t)=>n+(done.includes(t.id)?1:0),0);
+  const req=calorieReq(key);
+  const meals={};
+  let total=0,n=0;
+  for(const m of MEALS){
+    const mi=mealInfo(r,m.id);
+    meals[m.id]=mi;
+    total+=mi.total;
+    if(mi.logged) n++;
+  }
+  const logged=n===MEALS.length;
+  const calOk=req!==null&&logged&&total<=req;
+  const needed=tasks.length+(req!==null?1:0);
+  const got=tDone+(calOk?1:0);
+  return {tasks,done,tDone,req,total,n,logged,calOk,meals,needed,got,complete:needed>0&&got===needed};
+}
+
+function summary(){
+  const today=todayKey(),end=addDays(S.start,DAYS-1);
+  let best=0,run=0,count=0;
+  for(let i=0;i<DAYS;i++){
+    const k=addDays(S.start,i);
+    if(k>today) break;
+    if(status(k).complete){ run++; count++; if(run>best) best=run; } else run=0;
+  }
+  let cur=0;
+  if(today>=S.start){
+    let k=today>end?end:today;
+    if(k===today&&!status(k).complete) k=addDays(k,-1);
+    while(k>=S.start&&status(k).complete){ cur++; k=addDays(k,-1); }
+  }
+  return {cur,best,count};
+}
+
+function rec(key){
+  if(!S.days[key]) S.days[key]={done:[],meals:{}};
+  const r=S.days[key];
+  if(!r.done) r.done=[];
+  if(!r.meals) r.meals={};
+  return r;
+}
+function ensureMeal(key,mid){
+  const r=rec(key);
+  if(!r.meals[mid]) r.meals[mid]={items:[],skip:false};
+  if(!Array.isArray(r.meals[mid].items)) r.meals[mid].items=[];
+  return r.meals[mid];
+}
+function dropBlankItems(key){
+  const r=S.days[key];
+  if(!r||!r.meals) return;
+  let changed=false;
+  for(const mid of Object.keys(r.meals)){
+    const md=r.meals[mid];
+    if(!md||!Array.isArray(md.items)) continue;
+    const keep=md.items.filter(i=>i.n.trim()!==''||i.q!==null||i.k>0);
+    if(keep.length!==md.items.length){ md.items=keep; changed=true; }
+  }
+  if(changed) save();
+}
+function setDone(key,id,on){
+  const r=rec(key),i=r.done.indexOf(id);
+  if(on&&i<0) r.done.push(id);
+  if(!on&&i>=0) r.done.splice(i,1);
+  save();
+}
+function addTask(name){
+  const today=todayKey();
+  const id='t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  S.tasks.push({id,name,from:today>S.start?today:S.start});
+  save();
+}
+
+function latestWeight(){
+  const ks=Object.keys(S.weights||{}).sort();
+  return ks.length?S.weights[ks[ks.length-1]]:null;
+}
+function setWeight(key,v){
+  if(!S.weights) S.weights={};
+  if(v===null) delete S.weights[key]; else S.weights[key]=v;
+  save();
+}
+
+/* ---------- DOM helpers ---------- */
+function h(tag,props,...kids){
+  const el=document.createElement(tag);
+  if(props) for(const k of Object.keys(props)){
+    const v=props[k];
+    if(v===null||v===undefined||v===false) continue;
+    if(k==='class') el.className=v;
+    else if(k==='text') el.textContent=v;
+    else if(k.slice(0,2)==='on') el.addEventListener(k.slice(2),v);
+    else if(k==='value'||k==='checked'||k==='disabled'||k==='hidden') el[k]=v;
+    else el.setAttribute(k,v===true?'':v);
+  }
+  for(const c of kids.flat(Infinity)){
+    if(c===null||c===undefined||c===false) continue;
+    el.append(c.nodeType?c:document.createTextNode(String(c)));
+  }
+  return el;
+}
+const P={
+  check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  left:'<path d="M14.5 6l-6 6 6 6"/>',
+  right:'<path d="M9.5 6l6 6-6 6"/>',
+  up:'<path d="M6 14l6-6 6 6"/>',
+  down:'<path d="M6 10l6 6 6-6"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>'
+};
+function ico(inner){
+  const s=document.createElement('span');
+  s.className='ico';
+  s.setAttribute('aria-hidden','true');
+  s.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">'+inner+'</svg>';
+  return s;
+}
+function arm(btn,label,armedLabel,action){
+  let armed=false,t=0;
+  btn.addEventListener('click',()=>{
+    if(!armed){
+      armed=true; btn.textContent=armedLabel; btn.classList.add('armed');
+      t=setTimeout(()=>{armed=false;btn.textContent=label;btn.classList.remove('armed');},3500);
+    }else{
+      clearTimeout(t); armed=false; action();
+    }
+  });
+}
+function focusSoon(id){ setTimeout(()=>{const e=document.getElementById(id); if(e) e.focus();},0); }
+
+function makeLane(){
+  const el=h('div',{class:'lane',role:'img'});
+  const segs=[];
+  for(let i=0;i<DAYS;i++){ const s=h('i'); segs.push(s); el.append(s); }
+  return {el,update(count){
+    const today=todayKey();
+    segs.forEach((s,i)=>{
+      const k=addDays(S.start,i);
+      let cls='';
+      s.style.removeProperty('--p');
+      if(k<=today){
+        const st=status(k);
+        if(st.complete) cls='done';
+        else if(st.got>0){ cls='part'; s.style.setProperty('--p',String(st.got/st.needed)); }
+        else if(k<today) cls='miss';
+      }
+      if(k===today) cls=(cls+' now').trim();
+      s.className=cls;
+    });
+    el.setAttribute('aria-label','Tiến độ 30 ngày: '+count+' ngày đã hoàn thành');
+  }};
+}
+
+/* ---------- Views ---------- */
+function viewToday(){
+  const today=todayKey(),end=addDays(S.start,DAYS-1);
+  let key=viewKey===null?today:viewKey;
+  if(key<S.start) key=S.start;
+  if(key>end) key=end;
+  dropBlankItems(key);
+  const idx=diffDays(S.start,key)+1;
+  const editable=key<=today;
+  const before=today<S.start,after=today>end,isToday=key===today;
+
+  const stCur=h('b'),stDone=h('b');
+  const lane=makeLane();
+  const hero=h('header',{class:'hero'},
+    h('p',{class:'eyebrow',text:'Challenge 30 ngày'}),
+    h('div',{class:'dayrow'},
+      h('div',{class:'dayno'},h('span',{class:'daynum',text:String(idx)}),h('span',{class:'of',text:'/30'})),
+      h('div',{class:'stats'},
+        h('div',{class:'stat'},stCur,h('span',{text:'chuỗi ngày'})),
+        h('div',{class:'stat'},stDone,h('span',{text:'ngày xong'}))
+      )
+    ),
+    lane.el,
+    h('div',{class:'lane-ends'},h('span',{text:fmtDM(S.start)}),h('span',{text:fmtDM(end)}))
+  );
+
+  let note=null,noteText=null;
+  if(before){
+    noteText=h('span');
+    note=h('div',{class:'note'},noteText,h('button',{class:'btn small',type:'button',onclick:()=>go('edit')},'Đổi ngày'));
+  }else if(after){
+    noteText=h('span');
+    note=h('div',{class:'note'},noteText,h('button',{class:'btn small',type:'button',onclick:()=>go('edit')},'Làm lại'));
+  }else if(!isToday){
+    noteText=h('span',{text:'Bạn đang xem một ngày đã qua. Có thể bổ sung nếu quên ghi.'});
+    note=h('div',{class:'note'},noteText,h('button',{class:'btn small',type:'button',onclick:()=>{viewKey=null;render();}},'Về hôm nay'));
+  }
+
+  const prevBtn=h('button',{class:'iconbtn',type:'button','aria-label':'Ngày trước',disabled:key<=S.start,onclick:()=>{viewKey=addDays(key,-1);render();}},ico(P.left));
+  const nextBtn=h('button',{class:'iconbtn',type:'button','aria-label':'Ngày sau',disabled:key>=today||key>=end,onclick:()=>{viewKey=addDays(key,1);render();}},ico(P.right));
+  const datebar=h('div',{class:'datebar'},prevBtn,h('span',{class:'datetext',text:weekday(key)+', '+fmtDMY(key)}),nextBtn);
+
+  // Tasks
+  const count=h('span',{class:'count'});
+  const done=h('span',{class:'chip',text:'Hoàn thành',hidden:true});
+  const progFill=h('i');
+  const list=h('div',{class:'tasks'});
+  const st0=status(key);
+  const rows=[];
+  for(const t of st0.tasks){
+    const cb=h('input',{type:'checkbox',id:'chk-'+t.id,class:'sr',checked:st0.done.includes(t.id),disabled:!editable});
+    const row=h('label',{class:'task'+(editable?'':' is-locked'),for:'chk-'+t.id},
+      cb,h('span',{class:'box'},ico(P.check)),h('span',{class:'tname',text:t.name}));
+    cb.addEventListener('change',()=>{ setDone(key,t.id,cb.checked); refresh(); });
+    rows.push({row,cb});
+    list.append(row);
+  }
+  if(!st0.tasks.length){
+    list.append(h('div',{class:'empty'},
+      h('span',{text:'Chưa có việc nào cho ngày này.'}),
+      h('button',{class:'btn small',type:'button',onclick:()=>go('edit')},'Thêm việc')));
+  }
+  const tasksSec=h('section',{class:'section','aria-labelledby':'h-tasks'},
+    h('div',{class:'sec-head'},h('h2',{id:'h-tasks',text:'Việc trong ngày'}),h('span',{class:'sec-r'},done,' ',count)),
+    h('div',{class:'progress',role:'presentation'},progFill),
+    list);
+
+  // Calories: dishes per meal
+  const calBadge=h('span',{class:'badge'});
+  const calTotal=h('b');
+  const calOf=h('span',{class:'of2'});
+  const fill=h('i');
+  const meter=h('div',{class:'meter',role:'presentation'},fill);
+  const calMsg=h('p',{class:'calmsg'});
+  const setBtn=h('button',{class:'btn small',type:'button',onclick:()=>{go('edit');focusSoon('cal-target');}},'Đặt mục tiêu calo');
+  const noFoods=FOODS.length===0
+    ?h('div',{class:'callout'},
+        h('p',{class:'hint',text:'Chưa có bảng thực phẩm. Dán bảng từ Google Sheets ở tab Cấu hình để app tự tính calo theo tên món và khối lượng.'}),
+        h('button',{class:'btn small',type:'button',onclick:()=>go('edit')},'Thêm bảng thực phẩm'))
+    :null;
+  const dl=h('datalist',{id:'food-list'},FOODS.slice(0,1500).map(f=>h('option',{value:f.n})));
+
+  function buildItemRow(m,item){
+    const idp='it-'+item.id;
+    const nameI=h('input',{class:'iname',id:idp+'-n',type:'text',autocomplete:'off',placeholder:'Tên món',maxlength:'80','aria-label':m.name+', tên món',list:'food-list',value:item.n,disabled:!editable});
+    const qtyI=h('input',{class:'iqty',id:idp+'-q',type:'text',inputmode:'decimal',autocomplete:'off',placeholder:'Khối lượng',maxlength:'7','aria-label':m.name+', khối lượng',value:item.q===null?'':String(item.q),disabled:!editable});
+    const unitS=h('span',{class:'unit',text:'g'});
+    const kcalBox=h('div',{class:'ik'});
+    const sub=h('p',{class:'isub'});
+    const saveBtn=h('button',{class:'btn small isave',type:'button',hidden:true},'Lưu vào bảng thực phẩm');
+    let kv=null,mode='';
+    const del=h('button',{class:'iconbtn',type:'button','aria-label':'Xóa món',disabled:!editable},ico(P.x));
+    const el=h('div',{class:'item'},nameI,h('div',{class:'irow'},h('div',{class:'iq'},qtyI,unitS),kcalBox,del),sub,saveBtn);
+
+    function paint(){
+      const f=lookup(item.n);
+      unitS.textContent=f?f.u:'g';
+      qtyI.placeholder=f?String(f.b):'Khối lượng';
+      const want=f?'calc':'manual';
+      if(mode!==want){
+        mode=want;
+        kcalBox.replaceChildren();
+        if(f){
+          kv=h('span',{class:'kv'});
+          kcalBox.append(kv,h('span',{class:'unit',text:'kcal'}));
+        }else{
+          kv=null;
+          const ki=h('input',{class:'ikcal',id:idp+'-k',type:'text',inputmode:'numeric',autocomplete:'off',placeholder:'Calo',maxlength:'5','aria-label':m.name+', calo của món',disabled:!editable,value:item.k>0?String(item.k):''});
+          ki.addEventListener('input',()=>{
+            const d=ki.value.replace(/\D/g,'').slice(0,5);
+            if(d!==ki.value) ki.value=d;
+            item.k=d===''?0:Number(d); item.m=true;
+            save(); paint(); refresh();
+          });
+          kcalBox.append(ki,h('span',{class:'unit',text:'kcal'}));
+        }
+      }
+      if(kv) kv.textContent=fmtNum(item.k);
+      sub.textContent=f
+        ?fmtNum(f.k)+' kcal / '+fmtNum(f.b)+' '+f.u
+        :(item.n.trim()?(FOODS.length?'Không thấy trong bảng thực phẩm, hãy nhập calo.':'Nhập calo của món.'):'');
+      saveBtn.hidden=!(editable&&!f&&item.n.trim()!==''&&item.q!==null&&item.q>0&&item.k>0&&FOODS.length<MAX_FOODS);
+    }
+    function recalc(){
+      const f=lookup(item.n);
+      if(f){ item.m=false; item.k=item.q!==null?Math.round(f.k*item.q/f.b):0; }
+      else item.m=true;
+    }
+    nameI.addEventListener('input',()=>{ item.n=nameI.value; recalc(); save(); paint(); refresh(); });
+    qtyI.addEventListener('input',()=>{
+      const v=qtyI.value.replace(/[^\d.,]/g,'');
+      if(v!==qtyI.value) qtyI.value=v;
+      const n=v===''?null:Number(v.replace(',','.'));
+      item.q=(n===null||!isFinite(n))?null:n;
+      recalc(); save(); paint(); refresh();
+    });
+    del.addEventListener('click',()=>{
+      const md=ensureMeal(key,m.id);
+      md.items=md.items.filter(x=>x!==item);
+      save(); el.remove(); refresh();
+    });
+    saveBtn.addEventListener('click',()=>{
+      const n=item.n.trim();
+      if(!n||item.q===null||!(item.q>0)||!(item.k>0)||lookup(n)) return;
+      if(FOODS.length>=MAX_FOODS) return;
+      setFoods(FOODS.concat([{n:n.slice(0,80),b:item.q,u:'g',k:item.k}]));
+      saveFoods();
+      dl.appendChild(h('option',{value:n}));
+      if(noFoods) noFoods.hidden=true;
+      recalc(); save(); paint(); refresh();
+      sub.textContent='Đã lưu vào bảng thực phẩm: '+fmtNum(item.k)+' kcal / '+fmtNum(item.q)+' g.';
+    });
+    paint();
+    return {el,focus(){nameI.focus();}};
+  }
+
+  const mealBlocks=MEALS.map(m=>{
+    const md0=S.days[key]&&S.days[key].meals&&S.days[key].meals[m.id];
+    const mk=h('span',{class:'mk'});
+    const itemsBox=h('div',{class:'items'});
+    for(const it of ((md0&&md0.items)||[])) itemsBox.append(buildItemRow(m,it).el);
+    const addBtn=h('button',{class:'btn small',type:'button',disabled:!editable,onclick:()=>{
+      const md=ensureMeal(key,m.id);
+      const it={id:newId(),n:'',q:null,k:0,m:true};
+      md.items.push(it); save();
+      const row=buildItemRow(m,it);
+      itemsBox.append(row.el); row.focus(); refresh();
+    }},'+ Thêm món');
+    const skipCb=h('input',{type:'checkbox',id:'skip-'+m.id,checked:!!(md0&&md0.skip),disabled:!editable});
+    skipCb.addEventListener('change',()=>{ const md=ensureMeal(key,m.id); md.skip=skipCb.checked; save(); refresh(); });
+    const skipLbl=h('label',{class:'skip',for:'skip-'+m.id},skipCb,'Không ăn bữa này');
+    const foot=h('div',{class:'mfoot'},addBtn,skipLbl);
+    const el=h('div',{class:'mealblock'},
+      h('div',{class:'mhead'},h('h3',{text:m.name}),mk),
+      itemsBox,foot);
+    return {m,el,mk,itemsBox,addBtn,skipCb};
+  });
+
+  const calSec=h('section',{class:'section','aria-labelledby':'h-cal'},
+    h('div',{class:'sec-head'},h('h2',{id:'h-cal',text:'Calo trong ngày'}),calBadge),
+    h('div',{class:'card'},
+      mealBlocks.map(b=>b.el),
+      h('div',{class:'total'},h('span',{class:'lbl',text:'Tổng ngày'}),h('span',{},calTotal,calOf)),
+      meter,calMsg,noFoods,setBtn),
+    dl);
+
+  function refresh(){
+    const st=status(key),sm=summary();
+    stCur.textContent=String(sm.cur);
+    stDone.textContent=String(sm.count);
+    lane.update(sm.count);
+    count.textContent=st.got+'/'+st.needed;
+    done.hidden=!st.complete;
+    progFill.style.width=(st.needed?st.got/st.needed*100:0)+'%';
+    rows.forEach(r=>r.row.classList.toggle('is-done',r.cb.checked));
+
+    for(const b of mealBlocks){
+      const mi=st.meals[b.m.id];
+      b.mk.textContent=mi.skip?'Bỏ bữa':fmtNum(mi.total)+' kcal';
+      b.mk.classList.toggle('skipped',mi.skip);
+      b.itemsBox.hidden=mi.skip;
+      b.addBtn.hidden=mi.skip;
+      b.skipCb.disabled=!editable||(mi.filled>0&&!mi.skip);
+    }
+
+    calTotal.textContent=fmtNum(st.total);
+    if(st.req===null){
+      calOf.textContent=' kcal';
+      fill.style.width='0%';
+      meter.classList.remove('over');
+      calMsg.classList.remove('over');
+      calMsg.textContent=S.calGoal===false?'Challenge này không có mục tiêu calo, phần này chỉ để ghi lại.':'Chưa đặt mục tiêu calo nên phần này chưa tính vào chuỗi ngày.';
+      setBtn.hidden=S.calGoal===false;
+      calBadge.className='badge';
+      calBadge.textContent=st.n+'/3 bữa';
+    }else{
+      const over=st.total>st.req;
+      calOf.textContent=' / '+fmtNum(st.req)+' kcal';
+      fill.style.width=Math.min(100,st.total/st.req*100)+'%';
+      meter.classList.toggle('over',over);
+      calMsg.classList.toggle('over',over);
+      setBtn.hidden=true;
+      if(over){
+        calMsg.textContent='Vượt mục tiêu '+fmtNum(st.total-st.req)+' kcal.';
+        calBadge.className='badge warn'; calBadge.textContent='Vượt';
+      }else if(st.logged){
+        calMsg.textContent='Đạt. Còn '+fmtNum(st.req-st.total)+' kcal so với mục tiêu.';
+        calBadge.className='badge ok'; calBadge.textContent='Đạt';
+      }else{
+        calMsg.textContent='Đã ghi '+st.n+'/3 bữa. Còn '+fmtNum(st.req-st.total)+' kcal.';
+        calBadge.className='badge'; calBadge.textContent=st.n+'/3 bữa';
+      }
+    }
+    if(noteText&&before) noteText.textContent='Thử thách bắt đầu ngày '+fmtDMY(S.start)+', còn '+diffDays(today,S.start)+' ngày nữa.';
+    if(noteText&&after) noteText.textContent='Thử thách đã kết thúc. Bạn hoàn thành '+sm.count+'/30 ngày.';
+  }
+
+  const v=h('div',{class:'view'},h('h1',{class:'sr',text:'Cập nhật'}),hero,note,datebar,tasksSec,calSec);
+  refresh();
+  return v;
+}
+
+function chartSVG(ks){
+  const W=320,H=150,L=36,R=12,T=14,B=26;
+  const pts=ks.map(k=>({x:diffDays(ks[0],k),w:S.weights[k]}));
+  const span=pts[pts.length-1].x||1;
+  const ws=pts.map(p=>p.w);
+  const loW=Math.min.apply(null,ws),hiW=Math.max.apply(null,ws);
+  let lo=loW,hi=hiW;
+  if(hi-lo<1){ const m=(hi+lo)/2; lo=m-0.5; hi=m+0.5; }
+  else{ const pad=(hi-lo)*0.15; lo-=pad; hi+=pad; }
+  const X=x=>L+(x/span)*(W-L-R);
+  const Y=w=>T+(1-(w-lo)/(hi-lo))*(H-T-B);
+  const f=n=>n.toFixed(1);
+  let s='<svg class="wchart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Biểu đồ cân nặng theo ngày">';
+  const grid=(w)=>{
+    s+='<line class="gl" x1="'+L+'" x2="'+(W-R)+'" y1="'+f(Y(w))+'" y2="'+f(Y(w))+'"/>';
+    s+='<text x="'+(L-6)+'" y="'+f(Y(w)+4)+'" text-anchor="end">'+fmtNum(w)+'</text>';
+  };
+  grid(hiW);
+  if(loW!==hiW) grid(loW);
+  s+='<polyline class="ln" points="'+pts.map(p=>f(X(p.x))+','+f(Y(p.w))).join(' ')+'"/>';
+  pts.forEach((p,i)=>{
+    const last=i===pts.length-1;
+    s+='<circle class="pt'+(last?' last':'')+'" cx="'+f(X(p.x))+'" cy="'+f(Y(p.w))+'" r="'+(last?5:3)+'"/>';
+  });
+  s+='<text x="'+L+'" y="'+(H-6)+'" text-anchor="start">'+fmtDM(ks[0])+'</text>';
+  s+='<text x="'+(W-R)+'" y="'+(H-6)+'" text-anchor="end">'+fmtDM(ks[ks.length-1])+'</text>';
+  return s+'</svg>';
+}
+
+function viewCal(){
+  const today=todayKey(),end=addDays(S.start,DAYS-1),sm=summary();
+  if(!isKey(calSel)) calSel=today;
+  const refs=[];
+  const grid=h('div',{class:'cal-grid'});
+  const lead=(parseKey(S.start).getDay()+6)%7; // Monday first
+  for(let i=0;i<lead;i++) grid.append(h('div',{class:'cell blank','aria-hidden':'true'}));
+  for(let i=0;i<DAYS;i++){
+    const k=addDays(S.start,i),st=status(k),future=k>today;
+    let cls='cell',state;
+    if(future){ cls+=' future'; state='chưa tới'; }
+    else if(st.complete){ cls+=' done'; state='hoàn thành'; }
+    else if(st.got>0){ cls+=' part'; state=st.got+'/'+st.needed+' việc'; }
+    else if(k<today){ cls+=' miss'; state='chưa làm'; }
+    else state='chưa bắt đầu';
+    if(k===today) cls+=' now';
+    const dot=h('i',{class:'wdot'});
+    const b=h('button',{type:'button',class:cls,onclick:()=>selectDate(k)},
+      h('span',{class:'n',text:String(i+1)}),
+      h('span',{class:'d',text:fmtDM(k)}),
+      (st.complete&&!future)?ico(P.check):null,
+      dot);
+    if(!future&&!st.complete&&st.got>0) b.style.setProperty('--p',String(st.got/st.needed));
+    refs.push({k,b,dot,label:'Ngày '+(i+1)+', '+fmtDM(k)+', '+state});
+    grid.append(b);
+  }
+
+  // Selected day: weight entry
+  const dateInp=h('input',{class:'fld',id:'cal-date',type:'date',value:calSel});
+  const info=h('p',{class:'dp-title'});
+  const chip=h('span',{class:'badge'});
+  const wInp=h('input',{class:'fld wf',id:'cal-weight',type:'text',inputmode:'decimal',autocomplete:'off',placeholder:'Ví dụ 72,5',maxlength:'6'});
+  const wMsg=h('p',{class:'msg'});
+  const openBtn=h('button',{class:'btn',type:'button',onclick:()=>{ viewKey=calSel; go('today'); }},'Mở ngày này');
+  const wBox=h('div',{class:'wbox'});
+
+  function paintDay(){
+    const idx=diffDays(S.start,calSel)+1,inR=idx>=1&&idx<=DAYS;
+    info.textContent=(inR?'Ngày '+idx+'/30 · ':'')+weekday(calSel)+', '+fmtDMY(calSel);
+    if(inR){
+      const st=status(calSel);
+      chip.textContent=calSel>today?'Chưa tới':st.complete?'Hoàn thành':st.got>0?st.got+'/'+st.needed+' việc':calSel<today?'Chưa làm':'Chưa bắt đầu';
+      chip.className='badge'+(st.complete&&calSel<=today?' ok':'');
+    }else{
+      chip.textContent='Ngoài 30 ngày';
+      chip.className='badge';
+    }
+    openBtn.disabled=!(inR&&calSel<=today);
+    const w=S.weights[calSel];
+    wInp.value=w!==undefined?String(w).replace('.',','):'';
+    wMsg.textContent='';
+    refs.forEach(r=>{
+      const on=r.k===calSel;
+      r.b.classList.toggle('picked',on);
+      r.b.setAttribute('aria-pressed',on?'true':'false');
+    });
+  }
+  function paintW(){
+    refs.forEach(r=>{
+      const has=S.weights[r.k]!==undefined;
+      r.dot.hidden=!has;
+      r.b.setAttribute('aria-label',r.label+(has?', đã nhập cân nặng':''));
+    });
+    const ks=Object.keys(S.weights).sort();
+    wBox.replaceChildren();
+    if(!ks.length){
+      wBox.append(h('p',{class:'hint',text:'Chưa có số cân nào. Chọn một ngày ở lịch rồi nhập cân nặng ở phần trên.'}));
+      return;
+    }
+    const first=S.weights[ks[0]],last=S.weights[ks[ks.length-1]];
+    const d=Math.round((last-first)*10)/10;
+    wBox.append(h('div',{class:'cal-stats'},
+      h('div',{class:'stat'},h('b',{text:fmtNum(first)}),h('span',{text:'kg ban đầu, '+fmtDM(ks[0])})),
+      h('div',{class:'stat'},h('b',{text:fmtNum(last)}),h('span',{text:'kg mới nhất, '+fmtDM(ks[ks.length-1])})),
+      h('div',{class:'stat'},h('b',{text:(d>0?'+':d<0?'−':'')+fmtNum(Math.abs(d))}),h('span',{text:'kg thay đổi'}))));
+    if(ks.length>=2){
+      const holder=h('div');
+      holder.innerHTML=chartSVG(ks);
+      wBox.append(holder);
+    }else{
+      wBox.append(h('p',{class:'hint',text:'Nhập thêm một lần cân nữa để xem biểu đồ.'}));
+    }
+  }
+  function selectDate(k){ calSel=k; dateInp.value=k; paintDay(); }
+
+  dateInp.addEventListener('change',()=>{ if(isKey(dateInp.value)) selectDate(dateInp.value); else dateInp.value=calSel; });
+  const okW=n=>isFinite(n)&&n>=20&&n<=300;
+  wInp.addEventListener('input',()=>{
+    const v=wInp.value.replace(/[^\d.,]/g,'');
+    if(v!==wInp.value) wInp.value=v;
+    if(v===''){ setWeight(calSel,null); wMsg.textContent='Đã xóa cân nặng ngày này.'; paintW(); return; }
+    const n=parseNum(v);
+    if(okW(n)){ setWeight(calSel,Math.round(n*10)/10); wMsg.textContent='Đã lưu.'; paintW(); }
+    else wMsg.textContent='';
+  });
+  wInp.addEventListener('change',()=>{
+    if(wInp.value!==''&&!okW(parseNum(wInp.value))) wMsg.textContent='Nhập cân nặng từ 20 đến 300 kg.';
+  });
+
+  const panel=h('section',{class:'card daypanel','aria-labelledby':'h-day'},
+    h('div',{class:'dp-head'},h('h2',{id:'h-day',text:'Ngày đã chọn'}),chip),
+    h('div',{class:'dp-row'},h('label',{class:'hint',for:'cal-date',text:'Ngày'}),dateInp),
+    info,
+    h('div',{class:'dp-row'},h('label',{class:'hint',for:'cal-weight',text:'Cân nặng'}),wInp,h('span',{class:'unit',text:'kg'})),
+    wMsg,
+    h('div',{class:'btn-row'},openBtn));
+
+  const v=h('div',{class:'view'},
+    h('div',{class:'hero'},
+      h('p',{class:'eyebrow',text:fmtDMY(S.start)+' – '+fmtDMY(end)}),
+      h('h1',{class:'title',text:'Lịch 30 ngày challenge'})),
+    h('div',{class:'cal-stats'},
+      h('div',{class:'stat'},h('b',{text:String(sm.count)}),h('span',{text:'ngày hoàn thành'})),
+      h('div',{class:'stat'},h('b',{text:String(sm.cur)}),h('span',{text:'chuỗi hiện tại'})),
+      h('div',{class:'stat'},h('b',{text:String(sm.best)}),h('span',{text:'chuỗi dài nhất'}))),
+    h('div',{},
+      h('div',{class:'wk','aria-hidden':'true'},['T2','T3','T4','T5','T6','T7','CN'].map(t=>h('span',{text:t}))),
+      grid),
+    h('div',{class:'legend'},
+      h('span',{},h('i',{class:'sw done'}),'Hoàn thành'),
+      h('span',{},h('i',{class:'sw part'}),'Một phần'),
+      h('span',{},h('i',{class:'sw miss'}),'Chưa làm'),
+      h('span',{},h('i',{class:'sw now'}),'Hôm nay'),
+      h('span',{},h('i',{class:'sw picked'}),'Đang chọn'),
+      h('span',{},h('i',{class:'sw wd'}),'Đã nhập cân')),
+    panel,
+    h('section',{class:'section','aria-labelledby':'h-wtrend'},
+      h('h2',{id:'h-wtrend',text:'Diễn biến cân nặng'}),
+      wBox));
+  paintDay();
+  paintW();
+  return v;
+}
+
+/* ---------- Food table import ---------- */
+function parseTable(text){
+  text=String(text).replace(/\r\n?/g,'\n');
+  const first=text.split('\n',1)[0];
+  const delim=first.indexOf('\t')>=0?'\t':first.indexOf(';')>=0?';':',';
+  const rows=[];
+  let row=[],cell='',q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){ cell+='"'; i++; } else q=false; }
+      else cell+=c;
+    }else if(c==='"'&&cell==='') q=true;
+    else if(c===delim){ row.push(cell); cell=''; }
+    else if(c==='\n'){ row.push(cell); rows.push(row); row=[]; cell=''; }
+    else cell+=c;
+  }
+  row.push(cell); rows.push(row);
+  return rows.map(r=>r.map(c=>c.trim())).filter(r=>r.some(c=>c!=='')).slice(0,5001);
+}
+const looksNum=c=>/^\s*-?\d/.test(c);
+function autoMap(rows){
+  const head=rows[0].every(c=>!looksNum(c));
+  const names=head?rows[0]:[];
+  const ncol=Math.max.apply(null,rows.slice(0,50).map(r=>r.length));
+  const data=head?rows.slice(1,60):rows.slice(0,60);
+  const find=(re,skip)=>{ for(let i=0;i<ncol;i++){ if(skip.indexOf(i)>=0) continue; if(re.test(names[i]||'')) return i; } return -1; };
+  const share=(i,wantNum)=>{ let a=0,b=0; for(const r of data){ if(r[i]===undefined||r[i]==='') continue; b++; if(looksNum(r[i])===wantNum) a++; } return b?a/b:0; };
+  const firstCol=(wantNum,skip)=>{ for(let i=0;i<ncol;i++){ if(skip.indexOf(i)>=0) continue; if(share(i,wantNum)>=0.6) return i; } return -1; };
+  let kcal=find(/kcal|calo|calor|năng lượng|energy/i,[]);
+  let name=find(/tên|món|thực phẩm|thức ăn|name|food/i,[kcal]);
+  if(kcal<0) kcal=firstCol(true,[name]);
+  if(name<0) name=firstCol(false,[kcal]);
+  if(name<0) name=kcal===0?1:0;
+  if(kcal<0) kcal=name===0?1:0;
+  const base=find(/khối lượng|định lượng|lượng|gram|serving|khẩu phần|portion|\(g\)/i,[name,kcal]);
+  const unit=find(/đơn vị|unit|đvt|dvt/i,[name,kcal,base]);
+  const kh=names[kcal]||'';
+  const basis=/100/.test(kh)?'per100':/phần|quả|cái|serving|đơn vị|unit/i.test(kh)?'perunit':'per100';
+  return {head,ncol,name,kcal,base,unit,basis};
+}
+function buildFoods(rows,opt){
+  const out=[];
+  let skipped=0;
+  for(const r of (opt.head?rows.slice(1):rows)){
+    const n=(r[opt.name]||'').trim();
+    const k=parseNum(r[opt.kcal]);
+    if(!n||!isFinite(k)||k<0){ skipped++; continue; }
+    let b=opt.basis==='per100'?100:1;
+    let u=opt.basis==='perunit'?'phần':'g';
+    const unitCell=opt.unit>=0?(r[opt.unit]||'').trim():'';
+    if(opt.base>=0){
+      const cell=(r[opt.base]||'').trim();
+      const m=cell.match(/^\s*([\d.,]+)\s*(.*)$/);
+      const nb=m?parseNum(m[1]):NaN;
+      if(!isFinite(nb)||nb<=0){ skipped++; continue; }
+      b=nb; u=(m[2]||'').trim()||unitCell||'g';
+    }else if(unitCell) u=unitCell;
+    out.push({n:n.slice(0,80),b,u:u.slice(0,12),k});
+  }
+  return {foods:out,skipped};
+}
+
+/* ---------- Export (Excel) ---------- */
+let xlsxLoading=null;
+function loadXLSX(){
+  if(window.XLSX) return Promise.resolve(window.XLSX);
+  if(xlsxLoading) return xlsxLoading;
+  xlsxLoading=new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload=()=>{ if(window.XLSX) res(window.XLSX); else { xlsxLoading=null; rej({code:'no_lib'}); } };
+    s.onerror=()=>{ xlsxLoading=null; rej({code:'no_lib'}); };
+    document.head.appendChild(s);
+  });
+  return xlsxLoading;
+}
+async function saveBook(filename,sheets){
+  const X=await loadXLSX();
+  let dl=null;
+  try{ if(window.claude&&typeof window.claude.use==='function') dl=await window.claude.use('downloads'); }catch(e){ dl=null; }
+  const standalone=!window.claude;
+  if(!dl&&!standalone) throw {code:'no_downloads'};
+  const wb=X.utils.book_new();
+  sheets.forEach(sh=>{
+    const ws=X.utils.aoa_to_sheet(sh.rows);
+    if(sh.widths) ws['!cols']=sh.widths.map(w=>({wch:w}));
+    X.utils.book_append_sheet(wb,ws,sh.name);
+  });
+  const data=X.write(wb,{bookType:'xlsx',type:'array'});
+  if(standalone){
+    const url=URL.createObjectURL(new Blob([data],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+    const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
+    return {status:'saved'};
+  }
+  return dl.save({filename,data});
+}
+function exportErrorText(e){
+  const c=e&&e.code;
+  if(c==='no_lib') return 'Chưa tải được thư viện tạo file Excel. Kiểm tra kết nối mạng rồi thử lại, hoặc dùng nút "Sao chép".';
+  if(c==='no_downloads'||c==='unavailable'||c==='not_granted'||c==='capability_disabled'||c==='capability_removed') return 'Thiết bị hoặc khung xem này không hỗ trợ tải file từ trang. Hãy dùng nút "Sao chép" rồi dán vào Excel hoặc Google Sheets.';
+  if(c==='declined') return 'Bạn đã hủy lưu file.';
+  if(c==='rate_limited') return 'Đang có một hộp xác nhận lưu file khác. Hãy xử lý hộp đó rồi bấm lại.';
+  return 'Không lưu được file'+(c?' ('+c+')':'')+'.';
+}
+async function runExport(btn,msgEl,filename,sheets){
+  btn.disabled=true; msgEl.textContent='Đang tạo file…';
+  try{ await saveBook(filename,sheets); msgEl.textContent='Đã gửi file "'+filename+'" để lưu.'; }
+  catch(e){ msgEl.textContent=exportErrorText(e); }
+  btn.disabled=false;
+}
+const tsv=rows=>rows.map(r=>r.map(c=>String(c===null||c===undefined?'':c).replace(/[\t\r\n]+/g,' ')).join('\t')).join('\n');
+async function copyRows(rows,msgEl,fallbackEl){
+  const text=tsv(rows);
+  try{
+    await navigator.clipboard.writeText(text);
+    msgEl.textContent='Đã sao chép '+(rows.length-1)+' dòng. Dán vào Excel hoặc Google Sheets.';
+  }catch(e){
+    fallbackEl.hidden=false; fallbackEl.value=text; fallbackEl.focus(); fallbackEl.select();
+    msgEl.textContent='Không tự sao chép được. Văn bản đã hiện trong ô bên dưới, bạn chọn hết rồi sao chép.';
+  }
+}
+function foodRows(){
+  return [['Tên món','Khối lượng chuẩn','Đơn vị','Calo (kcal)']].concat(FOODS.map(f=>[f.n,f.b,f.u,f.k]));
+}
+function challengeSheets(){
+  const today=todayKey(),end=addDays(S.start,DAYS-1),sm=summary();
+  const dayHead=['Ngày thứ','Ngày','Thứ'].concat(S.tasks.map(t=>t.name),['Calo bữa sáng','Calo bữa trưa','Calo bữa tối','Tổng calo','Mục tiêu calo','Kết quả calo','Hoàn thành ngày','Cân nặng (kg)']);
+  const days=[dayHead];
+  for(let i=0;i<DAYS;i++){
+    const k=addDays(S.start,i),st=status(k),r=S.days[k]||{},fut=k>today;
+    const row=[i+1,fmtDMY(k),weekday(k)];
+    S.tasks.forEach(t=>{
+      if(fut||(t.from&&k<t.from)) row.push('');
+      else row.push((r.done||[]).indexOf(t.id)>=0?1:0);
+    });
+    MEALS.forEach(m=>{
+      const mi=st.meals[m.id];
+      row.push(fut?'':(mi.skip?'Bỏ bữa':(mi.filled?mi.total:'')));
+    });
+    row.push(fut||st.n===0?'':st.total);
+    row.push(st.req===null?'':st.req);
+    row.push(fut||st.req===null||!st.logged?'':(st.total<=st.req?'Đạt':'Vượt'));
+    row.push(fut?'':(st.complete?'Có':'Không'));
+    row.push(S.weights[k]!==undefined?S.weights[k]:'');
+    days.push(row);
+  }
+  const dayNo=k=>{ const n=diffDays(S.start,k)+1; return (n>=1&&n<=DAYS)?n:''; };
+  const items=[['Ngày thứ','Ngày','Bữa','Món','Khối lượng','Calo (kcal)','Nguồn']];
+  Object.keys(S.days).sort().forEach(k=>{
+    const r=S.days[k];
+    MEALS.forEach(m=>{
+      const md=r.meals&&r.meals[m.id];
+      ((md&&md.items)||[]).filter(isFilled).forEach(it=>{
+        items.push([dayNo(k),fmtDMY(k),m.name,it.n,it.q===null?'':it.q,it.k,it.m?'Nhập tay':'Từ bảng thực phẩm']);
+      });
+    });
+  });
+  const wk=Object.keys(S.weights).sort();
+  const weights=[['Ngày thứ','Ngày','Thứ','Cân nặng (kg)']].concat(wk.map(k=>[dayNo(k),fmtDMY(k),weekday(k),S.weights[k]]));
+  const calTxt=S.calGoal===false?'Không có mục tiêu calo':(S.target!==null?S.target:'Chưa đặt');
+  const overview=[
+    ['Ngày bắt đầu',fmtDMY(S.start)],
+    ['Ngày kết thúc',fmtDMY(end)],
+    ['Mục tiêu calo mỗi ngày (kcal)',calTxt],
+    ['Số ngày hoàn thành',sm.count],
+    ['Chuỗi hiện tại',sm.cur],
+    ['Chuỗi dài nhất',sm.best],
+    ['Cân nặng ban đầu (kg)',wk.length?S.weights[wk[0]]:''],
+    ['Cân nặng mới nhất (kg)',wk.length?S.weights[wk[wk.length-1]]:''],
+    ['Việc hằng ngày',S.tasks.map(t=>t.name).join('; ')],
+    ['Xuất ngày',fmtDMY(today)]
+  ];
+  return {
+    daysRows:days,
+    sheets:[
+      {name:'Tổng quan',rows:overview,widths:[32,40]},
+      {name:'Theo ngày',rows:days,widths:[10,12,11].concat(S.tasks.map(()=>14),[14,14,14,12,13,13,15,13])},
+      {name:'Món ăn',rows:items,widths:[10,12,12,30,12,12,20]},
+      {name:'Cân nặng',rows:weights,widths:[10,12,11,14]}
+    ]
+  };
+}
+function exportSection(){
+  const msg=h('p',{class:'msg'});
+  const copyOut=h('textarea',{class:'fld',readonly:true,hidden:true,'aria-label':'Dữ liệu để sao chép'});
+  const expBtn=h('button',{class:'btn',type:'button'},'Xuất Excel');
+  expBtn.addEventListener('click',()=>runExport(expBtn,msg,'challenge-30-ngay-'+todayKey()+'.xlsx',challengeSheets().sheets));
+  const copyBtn=h('button',{class:'btn',type:'button'},'Sao chép bảng theo ngày');
+  copyBtn.addEventListener('click',()=>copyRows(challengeSheets().daysRows,msg,copyOut));
+  return h('section',{class:'group','aria-labelledby':'h-exp'},
+    h('h2',{id:'h-exp',text:'Xuất dữ liệu challenge'}),
+    h('p',{class:'hint',text:'File Excel gồm 4 sheet: Tổng quan, Theo ngày, Món ăn và Cân nặng.'}),
+    h('div',{class:'btn-row'},expBtn,copyBtn),
+    msg,copyOut);
+}
+
+function foodsSection(){
+  const PAGE=50;
+  const count=h('p',{class:'hint'});
+  const msg=h('p',{class:'msg'});
+  const ta=h('textarea',{class:'fld',id:'food-paste',spellcheck:'false','aria-label':'Dán bảng thực phẩm',placeholder:'Dán các ô đã sao chép từ Google Sheets vào đây'});
+  const readBtn=h('button',{class:'btn',type:'button'},'Đọc bảng');
+  const mapBox=h('div',{class:'mapbox',hidden:true});
+
+  // Manager: search, scroll, edit one food
+  const search=h('input',{class:'fld',id:'food-search',type:'search',autocomplete:'off',placeholder:'Tìm món trong bảng','aria-label':'Tìm món trong bảng'});
+  const addBtn=h('button',{class:'btn small',type:'button'},'+ Thêm món');
+  const flist=h('ul',{class:'flist'});
+  const fscroll=h('div',{class:'fscroll',role:'region',tabindex:'0','aria-label':'Danh sách thực phẩm'},flist);
+  const fcount=h('p',{class:'hint'});
+  const editBox=h('div',{class:'fedit',hidden:true});
+  let matches=[],shown=PAGE;
+
+  function paintCount(){
+    count.textContent=FOODS.length
+      ?'Đã có '+FOODS.length+' món. Gõ tên món ở tab Cập nhật, app sẽ gợi ý và tự tính calo theo khối lượng.'
+      :'Chưa có món nào. Bạn có thể thêm từng món bằng nút bên dưới, hoặc dán bảng từ Google Sheets ở phần nhập.';
+  }
+  function rowFor(f){
+    const b=h('button',{class:'frow',type:'button'},h('span',{class:'fn',text:f.n}),h('span',{class:'fk',text:fmtNum(f.k)+' kcal / '+fmtNum(f.b)+' '+f.u}));
+    b.addEventListener('click',()=>openEditor(f));
+    return h('li',{},b);
+  }
+  function renderRows(){
+    flist.replaceChildren(...matches.slice(0,shown).map(rowFor));
+    if(!matches.length) flist.append(h('li',{class:'fempty',text:FOODS.length?'Không có món nào khớp.':'Bảng đang trống.'}));
+    if(shown<matches.length){
+      const more=h('button',{class:'btn small fmore',type:'button'},'Hiện thêm '+Math.min(PAGE,matches.length-shown)+' món');
+      more.addEventListener('click',()=>{ shown+=PAGE; renderRows(); });
+      flist.append(h('li',{class:'fmorerow'},more));
+    }
+    fcount.textContent=FOODS.length?('Hiện '+Math.min(shown,matches.length)+'/'+matches.length+' món'+(search.value.trim()?' khớp tìm kiếm':'')):'';
+  }
+  function paintList(){
+    const q=norm(search.value);
+    matches=FOODS.filter(f=>!q||norm(f.n).indexOf(q)>=0);
+    shown=PAGE;
+    fscroll.scrollTop=0;
+    renderRows();
+  }
+  fscroll.addEventListener('scroll',()=>{
+    if(shown<matches.length&&fscroll.scrollTop+fscroll.clientHeight>=fscroll.scrollHeight-80){ shown+=PAGE; renderRows(); }
+  });
+  search.addEventListener('input',paintList);
+
+  function closeEditor(){ editBox.hidden=true; editBox.replaceChildren(); }
+  function openEditor(f){
+    let dupFor=null;
+    const nameI=h('input',{class:'fld',id:'fe-name',type:'text',maxlength:'80',autocomplete:'off',value:f?f.n:''});
+    const baseI=h('input',{class:'fld',id:'fe-base',type:'text',inputmode:'decimal',autocomplete:'off',maxlength:'8',value:f?String(f.b).replace('.',','):'100'});
+    const unitI=h('input',{class:'fld',id:'fe-unit',type:'text',maxlength:'12',autocomplete:'off',value:f?f.u:'g'});
+    const kcalI=h('input',{class:'fld',id:'fe-kcal',type:'text',inputmode:'decimal',autocomplete:'off',maxlength:'8',value:f?String(f.k).replace('.',','):''});
+    const emsg=h('p',{class:'msg'});
+    const saveB=h('button',{class:'btn primary',type:'button'},'Lưu');
+    const cancelB=h('button',{class:'btn',type:'button'},'Hủy');
+    cancelB.addEventListener('click',closeEditor);
+    [baseI,kcalI].forEach(i=>i.addEventListener('input',()=>{ const v=i.value.replace(/[^\d.,]/g,''); if(v!==i.value) i.value=v; }));
+    saveB.addEventListener('click',()=>{
+      const n=nameI.value.trim(),b=parseNum(baseI.value),k=parseNum(kcalI.value),u=unitI.value.trim()||'g';
+      if(!n){ emsg.textContent='Nhập tên món.'; return; }
+      if(!(isFinite(b)&&b>0)){ emsg.textContent='Khối lượng chuẩn phải lớn hơn 0.'; return; }
+      if(!(isFinite(k)&&k>=0)){ emsg.textContent='Calo phải là số từ 0 trở lên.'; return; }
+      if(!f&&FOODS.length>=MAX_FOODS){ emsg.textContent='Bảng đã đủ '+fmtNum(MAX_FOODS)+' món. Hãy xóa bớt trước khi thêm.'; return; }
+      const dup=FOODS.find(x=>x!==f&&norm(x.n)===norm(n));
+      if(dup&&dupFor!==dup){
+        dupFor=dup;
+        emsg.textContent='Đã có món "'+dup.n+'". Bấm Ghi đè để thay món đó bằng nội dung này.';
+        saveB.textContent='Ghi đè';
+        return;
+      }
+      const item={n:n.slice(0,80),b,u:u.slice(0,12),k};
+      let next=FOODS.slice();
+      if(f) next[next.indexOf(f)]=item; else next.push(item);
+      if(dup) next=next.filter(x=>x!==dup);
+      setFoods(next); saveFoods();
+      closeEditor();
+      search.value=item.n;
+      paintList(); paintCount();
+      msg.textContent='Đã lưu món "'+item.n+'".';
+    });
+    const delB=f?h('button',{class:'btn danger',type:'button'},'Xóa món'):null;
+    if(delB) arm(delB,'Xóa món','Chắc chắn xóa?',()=>{
+      setFoods(FOODS.filter(x=>x!==f)); saveFoods();
+      closeEditor(); paintList(); paintCount();
+      msg.textContent='Đã xóa món "'+f.n+'".';
+    });
+    editBox.replaceChildren(
+      h('h3',{class:'fh',text:f?'Sửa món':'Thêm món mới'}),
+      h('div',{class:'fgrid'},
+        h('label',{class:'full',for:'fe-name'},'Tên món',nameI),
+        h('label',{for:'fe-base'},'Khối lượng chuẩn',baseI),
+        h('label',{for:'fe-unit'},'Đơn vị',unitI),
+        h('label',{class:'full',for:'fe-kcal'},'Calo (kcal) cho khối lượng chuẩn',kcalI)),
+      emsg,
+      h('div',{class:'btn-row'},saveB,cancelB,delB));
+    editBox.hidden=false;
+    if(editBox.scrollIntoView) try{ editBox.scrollIntoView({block:'nearest'}); }catch(e){}
+    nameI.focus();
+  }
+  addBtn.addEventListener('click',()=>openEditor(null));
+  paintCount();
+  paintList();
+
+  readBtn.addEventListener('click',()=>{
+    msg.textContent='';
+    const rows=parseTable(ta.value);
+    if(!rows.length){ msg.textContent='Chưa có dữ liệu. Hãy dán bảng vào ô phía trên.'; mapBox.hidden=true; return; }
+    const auto=autoMap(rows);
+    if(auto.ncol<2){ msg.textContent='Bảng cần ít nhất 2 cột: tên món và calo.'; mapBox.hidden=true; return; }
+    const colName=i=>(auto.head&&rows[0][i])?rows[0][i]:'Cột '+String.fromCharCode(65+(i%26));
+    const opts=none=>{
+      const a=[];
+      if(none) a.push(h('option',{value:'-1',text:'Không có'}));
+      for(let i=0;i<auto.ncol;i++) a.push(h('option',{value:String(i),text:colName(i).slice(0,40)}));
+      return a;
+    };
+    const mk=(id,label,none,val)=>{ const s=h('select',{class:'sel',id},opts(none)); s.value=String(val); return {s,wrap:h('label',{for:id},label,s)}; };
+    const cName=mk('map-name','Cột tên món',false,auto.name);
+    const cKcal=mk('map-kcal','Cột calo (kcal)',false,auto.kcal);
+    const cBase=mk('map-base','Cột khối lượng chuẩn (nếu có)',true,auto.base);
+    const cUnit=mk('map-unit','Cột đơn vị (nếu có)',true,auto.unit);
+    const sBasis=h('select',{class:'sel',id:'map-basis'},
+      h('option',{value:'per100',text:'100 g hoặc 100 ml'}),
+      h('option',{value:'per1',text:'1 g hoặc 1 ml'}),
+      h('option',{value:'perunit',text:'1 phần, 1 quả, 1 cái'}));
+    sBasis.value=auto.basis;
+    const sMode=h('select',{class:'sel',id:'map-mode'},
+      h('option',{value:'replace',text:'Thay thế bảng hiện có'}),
+      h('option',{value:'merge',text:'Gộp thêm vào bảng hiện có'}));
+    const preview=h('ul',{class:'preview'});
+    const importBtn=h('button',{class:'btn primary',type:'button'});
+    let cur={foods:[],skipped:0};
+    function recompute(){
+      sBasis.disabled=cBase.s.value!=='-1';
+      cur=buildFoods(rows,{head:auto.head,name:+cName.s.value,kcal:+cKcal.s.value,base:+cBase.s.value,unit:+cUnit.s.value,basis:sBasis.value});
+      preview.replaceChildren(...cur.foods.slice(0,4).map(f=>h('li',{text:f.n+': '+fmtNum(f.k)+' kcal / '+fmtNum(f.b)+' '+f.u})));
+      if(!cur.foods.length) preview.append(h('li',{text:'Chưa đọc được món nào. Hãy kiểm tra lại các cột đã chọn.'}));
+      if(cur.skipped) preview.append(h('li',{text:'Bỏ qua '+cur.skipped+' dòng thiếu tên hoặc calo.'}));
+      importBtn.textContent='Nhập '+cur.foods.length+' món';
+      importBtn.disabled=!cur.foods.length;
+    }
+    [cName.s,cKcal.s,cBase.s,cUnit.s,sBasis].forEach(s=>s.addEventListener('change',recompute));
+    importBtn.addEventListener('click',()=>{
+      const merged=sMode.value==='merge'?FOODS.concat(cur.foods):cur.foods;
+      setFoods(merged); saveFoods();
+      const n=cur.foods.length;
+      ta.value=''; mapBox.hidden=true; mapBox.replaceChildren();
+      closeEditor(); paintCount(); paintList();
+      msg.textContent='Đã nhập '+n+' món. Bảng hiện có '+FOODS.length+' món.';
+    });
+    mapBox.replaceChildren(
+      h('p',{class:'hint',text:'Kiểm tra các cột app đã nhận. Phần xem trước cho biết calo được hiểu theo khối lượng nào.'}),
+      h('div',{class:'mapgrid'},cName.wrap,cKcal.wrap,cBase.wrap,cUnit.wrap,
+        h('label',{for:'map-basis'},'Calo ghi theo (khi không có cột khối lượng)',sBasis),
+        h('label',{for:'map-mode'},'Cách nhập',sMode)),
+      preview,importBtn);
+    mapBox.hidden=false;
+    recompute();
+  });
+
+  // Export
+  const expMsg=h('p',{class:'msg'});
+  const copyOut=h('textarea',{class:'fld',readonly:true,hidden:true,'aria-label':'Dữ liệu để sao chép'});
+  const expBtn=h('button',{class:'btn',type:'button'},'Xuất Excel');
+  expBtn.addEventListener('click',()=>{
+    if(!FOODS.length){ expMsg.textContent='Bảng đang trống, chưa có gì để xuất.'; return; }
+    runExport(expBtn,expMsg,'bang-thuc-pham-'+todayKey()+'.xlsx',[{name:'Thực phẩm',rows:foodRows(),widths:[34,18,10,14]}]);
+  });
+  const copyBtn=h('button',{class:'btn',type:'button'},'Sao chép bảng');
+  copyBtn.addEventListener('click',()=>{
+    if(!FOODS.length){ expMsg.textContent='Bảng đang trống, chưa có gì để sao chép.'; return; }
+    copyRows(foodRows(),expMsg,copyOut);
+  });
+
+  const clearBtn=h('button',{class:'btn danger',type:'button'},'Xóa bảng thực phẩm');
+  arm(clearBtn,'Xóa bảng thực phẩm','Chắc chắn xóa bảng?',()=>{ setFoods([]); saveFoods(); closeEditor(); paintList(); paintCount(); msg.textContent='Đã xóa bảng thực phẩm.'; });
+
+  return h('section',{class:'group','aria-labelledby':'h-foods'},
+    h('h2',{id:'h-foods',text:'Bảng thực phẩm'}),
+    count,
+    h('div',{class:'fman'},
+      h('div',{class:'fsearch'},search,addBtn),
+      editBox,
+      fscroll,
+      fcount),
+    h('p',{class:'eyebrow',text:'Nhập từ Google Sheets hoặc Excel'}),
+    h('p',{class:'hint',text:'App không nối trực tiếp với Google Sheets được. Khi bảng thay đổi, bạn sao chép các ô rồi dán vào đây. Chọn "Gộp thêm" để cập nhật món trùng tên và thêm món mới mà không mất món cũ.'}),
+    ta,
+    h('div',{class:'btn-row'},readBtn),
+    mapBox,msg,
+    h('p',{class:'eyebrow',text:'Xuất bảng thực phẩm'}),
+    h('div',{class:'btn-row'},expBtn,copyBtn),
+    expMsg,copyOut,
+    h('div',{class:'btn-row'},clearBtn));
+}
+
+function tdeeSection(onApply){
+  if(!S.profile) S.profile={};
+  const p=S.profile;
+  const field=(id,max,val)=>h('input',{class:'fld',id,type:'text',inputmode:'decimal',autocomplete:'off',maxlength:String(max),value:val===undefined?'':String(val).replace('.',',')});
+  const sexS=h('select',{class:'sel',id:'td-sex'},h('option',{value:'',text:'Chọn'}),h('option',{value:'m',text:'Nam'}),h('option',{value:'f',text:'Nữ'}));
+  sexS.value=p.sex||'';
+  const ageI=field('td-age',3,p.age),hI=field('td-h',5,p.h),wI=field('td-w',6,p.w),dI=field('td-def',5,p.def===undefined?500:p.def);
+  const actS=h('select',{class:'sel',id:'td-act'},ACT.map(a=>h('option',{value:String(a.v),text:a.t})));
+  actS.value=String(p.act||1.55);
+  const bmrV=h('b'),tdeeV=h('b'),tgtV=h('b'),tgtL=h('span');
+  const rows=h('div',{class:'resrows'},
+    h('div',{class:'resrow'},h('span',{text:'BMR, năng lượng khi nghỉ'}),h('span',{},bmrV,' kcal')),
+    h('div',{class:'resrow'},h('span',{text:'TDEE, tiêu hao mỗi ngày'}),h('span',{},tdeeV,' kcal')),
+    h('div',{class:'resrow big'},tgtL,h('span',{},tgtV,' kcal')));
+  const warn=h('p',{class:'warnline',hidden:true});
+  const box=h('div',{class:'card',hidden:true},rows,warn);
+  const need=h('p',{class:'hint'});
+  const note=h('p',{class:'hint'});
+  const applyBtn=h('button',{class:'btn primary',type:'button',disabled:true},'Đặt làm mục tiêu calo');
+  const msg=h('p',{class:'msg'});
+  let cur=null;
+
+  function read(){
+    const num=(el,lo,hi)=>{ const n=parseNum(el.value); return (isFinite(n)&&n>=lo&&n<=hi)?n:undefined; };
+    const defRaw=dI.value.trim();
+    return {sex:sexS.value||undefined,age:num(ageI,10,100),h:num(hI,100,250),w:num(wI,20,300),act:Number(actS.value),def:defRaw===''?500:num(dI,0,1500),defRaw};
+  }
+  function paint(){
+    const r=read(),lw=latestWeight();
+    wI.placeholder=lw!==null?fmtNum(lw)+' (cân gần nhất)':'kg';
+    const w=r.w!==undefined?r.w:(lw!==null?lw:undefined);
+    const ok=!!r.sex&&r.age!==undefined&&r.h!==undefined&&w!==undefined&&r.def!==undefined;
+    const d=r.def!==undefined?r.def:500;
+    tgtL.textContent=d>0?'Mục tiêu = TDEE − '+fmtNum(d):'Mục tiêu = TDEE';
+    note.textContent=(d>0
+      ?'Thiếu hụt '+fmtNum(d)+' kcal mỗi ngày tương ứng giảm khoảng '+(Math.round(d*7/7700*100)/100).toLocaleString('vi-VN',{maximumFractionDigits:2})+' kg mỗi tuần. '
+      :'Giữ đúng TDEE nghĩa là giữ nguyên cân nặng. ')
+      +'Đây chỉ là ước tính. Nếu bạn có bệnh lý, đang mang thai hoặc cho con bú, hãy hỏi bác sĩ hoặc chuyên gia dinh dưỡng trước khi ăn kiêng.';
+    need.textContent=r.def===undefined
+      ?'Mức giảm cần là số từ 0 đến 1.500 kcal. Để trống thì app dùng 500.'
+      :'Nhập đủ giới tính, tuổi, chiều cao và cân nặng để tính. Nếu bỏ trống cân nặng, app dùng số cân gần nhất bạn đã ghi ở tab Lịch.';
+    box.hidden=!ok; need.hidden=ok; warn.hidden=true; applyBtn.disabled=true; cur=null;
+    if(!ok) return;
+    const bmr=10*w+6.25*r.h-5*r.age+(r.sex==='m'?5:-161);
+    const tdee=bmr*r.act;
+    const target=Math.round(tdee)-d;
+    cur=target;
+    bmrV.textContent=fmtNum(Math.round(bmr));
+    tdeeV.textContent=fmtNum(Math.round(tdee));
+    tgtV.textContent=fmtNum(target);
+    const min=r.sex==='m'?1500:1200;
+    const lines=[];
+    if(target<min) lines.push('Mục tiêu này thấp hơn mức tối thiểu thường được khuyến nghị ('+fmtNum(min)+' kcal với '+(r.sex==='m'?'nam':'nữ')+').');
+    if(d>1000) lines.push('Mức giảm trên 1.000 kcal mỗi ngày khá mạnh.');
+    if(lines.length){ warn.textContent=lines.join(' ')+' Nên hỏi chuyên gia dinh dưỡng trước khi áp dụng.'; warn.hidden=false; }
+    applyBtn.disabled=target<=0;
+  }
+  function sync(){
+    const r=read();
+    ['sex','age','h','w'].forEach(f=>{ if(r[f]===undefined) delete p[f]; else p[f]=r[f]; });
+    if(r.defRaw===''||r.def===undefined) delete p.def; else p.def=r.def;
+    p.act=r.act;
+    save(); paint(); msg.textContent='';
+  }
+  [ageI,hI,wI,dI].forEach(i=>i.addEventListener('input',()=>{
+    const v=i.value.replace(/[^\d.,]/g,'');
+    if(v!==i.value) i.value=v;
+    sync();
+  }));
+  sexS.addEventListener('change',sync);
+  actS.addEventListener('change',sync);
+  applyBtn.addEventListener('click',()=>{
+    if(cur===null||cur<=0) return;
+    onApply(cur);
+    msg.textContent='Đã đặt mục tiêu calo '+fmtNum(cur)+' kcal mỗi ngày.';
+  });
+  paint();
+
+  return h('section',{class:'group','aria-labelledby':'h-tdee'},
+    h('h2',{id:'h-tdee',text:'Tính mục tiêu từ TDEE'}),
+    h('p',{class:'hint',text:'Mục tiêu calo = TDEE trừ đi số kcal bạn chọn (mặc định 500). TDEE là tổng năng lượng cơ thể tiêu hao trong ngày, tính theo công thức Mifflin-St Jeor nhân với hệ số vận động.'}),
+    h('div',{class:'tdee'},
+      h('label',{for:'td-sex'},'Giới tính',sexS),
+      h('label',{for:'td-age'},'Tuổi',ageI),
+      h('label',{for:'td-h'},'Chiều cao (cm)',hI),
+      h('label',{for:'td-w'},'Cân nặng (kg)',wI),
+      h('label',{class:'full',for:'td-act'},'Mức vận động',actS),
+      h('label',{class:'full',for:'td-def'},'Giảm so với TDEE (kcal mỗi ngày)',dI)),
+    need,box,
+    h('div',{class:'btn-row'},applyBtn),
+    msg,
+    note);
+}
+
+function viewEdit(){
+  // Task list
+  const list=h('div',{class:'elist'});
+  S.tasks.forEach((t,i)=>{
+    let last=t.name;
+    const inp=h('input',{class:'tinput',id:'task-'+t.id,type:'text',value:t.name,maxlength:'60',autocomplete:'off','aria-label':'Tên việc '+(i+1)});
+    inp.addEventListener('input',()=>{ if(inp.value.trim()!==''){ t.name=inp.value; last=inp.value; save(); } });
+    inp.addEventListener('change',()=>{
+      if(inp.value.trim()===''){ inp.value=last; t.name=last; }
+      else{ t.name=inp.value.trim(); inp.value=t.name; last=t.name; }
+      save();
+    });
+    const move=(a,b)=>()=>{ const x=S.tasks[a]; S.tasks[a]=S.tasks[b]; S.tasks[b]=x; save(); render(); };
+    const up=h('button',{class:'iconbtn',type:'button','aria-label':'Chuyển lên',disabled:i===0,onclick:move(i,i-1)},ico(P.up));
+    const down=h('button',{class:'iconbtn',type:'button','aria-label':'Chuyển xuống',disabled:i===S.tasks.length-1,onclick:move(i,i+1)},ico(P.down));
+    const del=h('button',{class:'btn small danger',type:'button','aria-label':'Xóa việc '+(i+1)},'Xóa');
+    arm(del,'Xóa','Chắc chắn?',()=>{ S.tasks=S.tasks.filter(x=>x.id!==t.id); save(); render(); });
+    list.append(h('div',{class:'erow'},inp,up,down,del));
+  });
+  if(!S.tasks.length) list.append(h('p',{class:'hint',text:'Danh sách đang trống. Thêm việc đầu tiên bên dưới.'}));
+
+  const newInp=h('input',{class:'tinput',id:'new-task',type:'text',placeholder:'Thêm việc, ví dụ: Uống 2 lít nước',maxlength:'60',autocomplete:'off','aria-label':'Việc mới'});
+  const addForm=h('form',{class:'erow',id:'add-form'},newInp,h('button',{class:'btn primary',type:'submit'},'Thêm'));
+  addForm.addEventListener('submit',e=>{
+    e.preventDefault();
+    const name=newInp.value.trim();
+    if(!name) return;
+    addTask(name); render(); focusSoon('new-task');
+  });
+
+  // Calorie target
+  const tgtHint=h('p',{class:'hint'});
+  const tgt=h('input',{class:'fld',id:'cal-target',type:'text',inputmode:'numeric',pattern:'[0-9]*',autocomplete:'off',placeholder:'Chưa đặt',maxlength:'5',value:S.target!==null?String(S.target):''});
+  const tgtHintText=()=>{
+    tgtHint.textContent=S.target===null
+      ?'Để trống thì calo chỉ được ghi lại, chưa tính vào chuỗi ngày.'
+      :'Một ngày đạt phần calo khi cả 3 bữa đã được ghi và tổng không vượt '+fmtNum(S.target)+' kcal. Các ngày đã qua giữ mục tiêu cũ.';
+  };
+  tgtHintText();
+  tgt.addEventListener('input',()=>{ const d=tgt.value.replace(/\D/g,'').slice(0,5); if(d!==tgt.value) tgt.value=d; });
+  tgt.addEventListener('change',()=>{
+    const n=Number(tgt.value.replace(/\D/g,''));
+    setTarget(n>0?n:null);
+    tgt.value=S.target!==null?String(S.target):'';
+    tgtHintText();
+  });
+
+  // Start date
+  const endText=h('p',{class:'hint'});
+  const endTextSet=()=>{ endText.textContent='Ngày kết thúc: '+fmtDMY(addDays(S.start,DAYS-1))+'. Đổi ngày bắt đầu không xóa dữ liệu đã ghi theo ngày.'; };
+  endTextSet();
+  const startInp=h('input',{class:'fld',id:'start-date',type:'date',value:S.start,'aria-label':'Ngày bắt đầu'});
+  startInp.addEventListener('change',()=>{
+    if(isKey(startInp.value)){ S.start=startInp.value; viewKey=null; save(); endTextSet(); }
+    else startInp.value=S.start;
+  });
+
+  // Backup
+  const msg=h('p',{class:'msg'});
+  const ta=h('textarea',{class:'fld',id:'backup',spellcheck:'false','aria-label':'Dữ liệu sao lưu',placeholder:'Văn bản sao lưu sẽ hiện ở đây. Dán văn bản đã lưu vào đây để khôi phục.'});
+  const copyBtn=h('button',{class:'btn',type:'button'},'Sao chép dữ liệu');
+  copyBtn.addEventListener('click',()=>{
+    ta.value=JSON.stringify(S);
+    ta.focus(); ta.select();
+    let p;
+    try{ p=navigator.clipboard.writeText(ta.value); }catch(e){ p=Promise.reject(e); }
+    p.then(()=>{ msg.textContent='Đã sao chép. Dán vào ghi chú hoặc tin nhắn để lưu lại.'; },
+           ()=>{ msg.textContent='Không tự sao chép được. Hãy giữ và sao chép đoạn văn bản bên dưới.'; });
+  });
+  const restoreBtn=h('button',{class:'btn',type:'button'},'Khôi phục');
+  arm(restoreBtn,'Khôi phục','Ghi đè dữ liệu hiện tại?',()=>{
+    let n=null;
+    try{ n=normalize(JSON.parse(ta.value)); }catch(e){}
+    restoreBtn.textContent='Khôi phục'; restoreBtn.classList.remove('armed');
+    if(!n){ msg.textContent='Văn bản này không đúng định dạng sao lưu.'; return; }
+    S=n; viewKey=null; save(); render();
+  });
+  const resetBtn=h('button',{class:'btn danger',type:'button'},'Xóa toàn bộ và bắt đầu lại');
+  arm(resetBtn,'Xóa toàn bộ và bắt đầu lại','Chắc chắn xóa hết?',()=>{ S=fresh(); viewKey=null; save(); go('today'); });
+
+  const calOn=S.calGoal!==false;
+  const calCb=h('input',{type:'checkbox',id:'cal-on',checked:calOn});
+  calCb.addEventListener('change',()=>{ setCalGoal(calCb.checked); render(); });
+  const calPin=h('label',{class:'pin',for:'cal-on'},calCb,
+    h('span',{class:'pt'},
+      h('b',{text:'Calo trong ngày'}),
+      h('span',{class:'hint',text:calOn?'Đang tính: một ngày chỉ hoàn thành khi tổng calo không vượt mục tiêu.':'Challenge này không có mục tiêu calo. Phần calo ở tab Cập nhật chỉ để ghi lại.'})));
+
+  // Theme (per device)
+  const themeBtns=[];
+  const themeSection=()=>{
+    const cur=getThemePref();
+    const opts=[['system','Theo thiết bị'],['light','Sáng'],['dark','Tối']];
+    const box=h('div',{class:'segs',role:'group','aria-label':'Giao diện'});
+    opts.forEach(o=>{
+      const b=h('button',{class:'btn'+(cur===o[0]?' primary':''),type:'button','aria-pressed':cur===o[0]?'true':'false'},o[1]);
+      b.addEventListener('click',()=>{
+        setThemePref(o[0]);
+        themeBtns.forEach(x=>{ const on=x.k===o[0]; x.b.classList.toggle('primary',on); x.b.setAttribute('aria-pressed',on?'true':'false'); });
+      });
+      themeBtns.push({k:o[0],b});
+      box.append(b);
+    });
+    return h('section',{class:'group','aria-labelledby':'h-theme'},
+      h('h2',{id:'h-theme',text:'Giao diện'}),
+      box,
+      h('p',{class:'hint',text:'Áp dụng riêng cho thiết bị này. Máy tính và điện thoại có thể dùng giao diện khác nhau.'}));
+  };
+
+  return h('div',{class:'view'},
+    h('h1',{class:'title',text:'Cấu hình'}),
+    h('section',{class:'section','aria-labelledby':'h-start'},
+      h('h2',{id:'h-start',text:'Ngày bắt đầu'}),
+      startInp,endText),
+    themeSection(),
+    h('section',{class:'group','aria-labelledby':'h-list'},
+      h('h2',{id:'h-list',text:'Việc hằng ngày'}),
+      h('p',{class:'hint',text:'Việc mới chỉ tính từ hôm nay. Các ngày đã qua giữ nguyên kết quả.'}),
+      calPin,
+      list,addForm),
+    calOn?h('section',{class:'group','aria-labelledby':'h-kcal'},
+      h('h2',{id:'h-kcal',text:'Mục tiêu calo'}),
+      h('label',{class:'hint',for:'cal-target',text:'Tối đa mỗi ngày'}),
+      h('div',{class:'fld-row'},tgt,h('span',{text:'kcal'})),
+      tgtHint):null,
+    calOn?tdeeSection(n=>{ setTarget(n); tgt.value=String(S.target); tgtHintText(); }):null,
+    foodsSection(),
+    exportSection(),
+    h('section',{class:'group','aria-labelledby':'h-backup'},
+      h('h2',{id:'h-backup',text:'Sao lưu'}),
+      h('p',{class:'hint',text:'Khi app kết nối được, dữ liệu tự đồng bộ giữa các thiết bị mở cùng liên kết bằng cùng tài khoản Claude (xem dòng trạng thái ở đầu trang). Nếu chỉ hiện "Chỉ lưu trên máy này", dữ liệu nằm trong trình duyệt này và sẽ mất khi xóa dữ liệu trình duyệt. Bản sao lưu dưới đây là phòng khi cần và không gồm bảng thực phẩm.'}),
+      ta,
+      h('div',{class:'btn-row'},copyBtn,restoreBtn),
+      msg),
+    h('section',{class:'group'},
+      h('div',{class:'btn-row'},resetBtn)));
+}
+
+/* ---------- Shell ---------- */
+const mainEl=document.getElementById('main');
+const tabBtns=Array.from(document.querySelectorAll('.tabs button'));
+
+function render(){
+  const v=tab==='cal'?viewCal():tab==='edit'?viewEdit():viewToday();
+  mainEl.replaceChildren();
+  if(!saveOK&&!SYNC.ok()){
+    mainEl.append(h('div',{class:'note warn',style:'margin-bottom:16px'},h('span',{text:'Trình duyệt đang chặn lưu dữ liệu. Những gì bạn ghi sẽ mất khi đóng trang.'})));
+  }
+  mainEl.append(v);
+  tabBtns.forEach(b=>{ if(b.dataset.tab===tab) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+}
+function go(t){
+  tab=t;
+  render();
+  window.scrollTo(0,0);
+  try{ const want='#'+HASH[t]; if(location.hash!==want) location.hash=want; }catch(e){}
+}
+function tabFromHash(){
+  const x=location.hash.replace(/^#/,'');
+  for(const k of Object.keys(HASH)) if(HASH[k]===x) return k;
+  return 'today';
+}
+tabBtns.forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.tab==='today') viewKey=null; go(b.dataset.tab); }));
+window.addEventListener('hashchange',()=>{ const t=tabFromHash(); if(t!==tab){ tab=t; render(); window.scrollTo(0,0); } });
+
+/* ---------- Cloud sync (db capability) ---------- */
+// Documents: cfg/main, days/<date>, weights/<date>, foods/f00... Each device writes only the documents it changed.
+const SYNC={db:null,ready:false,writing:false,timer:0,retry:0,offT:0,state:'local',last:new Map(),boot:new Map(),first:{cfg:false,days:false,weights:false,foods:false}};
+const SYNC_TXT={
+  local:'Chỉ lưu trên máy này',
+  connecting:'Đang kết nối để đồng bộ…',
+  ok:'Đã đồng bộ',
+  saving:'Đang lưu…',
+  offline:'Chưa kết nối được. Dữ liệu đang lưu tạm trên máy này.',
+  error:'Chưa lưu lên máy chủ được. Dữ liệu vẫn nằm trên máy này.',
+  full:'Kho lưu trữ đồng bộ đã đầy. Dữ liệu vẫn nằm trên máy này.'
+};
+SYNC.ok=()=>SYNC.state==='ok'||SYNC.state==='saving';
+function setSyncState(s){
+  SYNC.state=s;
+  const el=document.getElementById('sync');
+  if(!el) return;
+  el.setAttribute('data-s',s);
+  el.textContent=SYNC_TXT[s]||'';
+}
+function canon(v){
+  if(Array.isArray(v)) return '['+v.map(canon).join(',')+']';
+  if(v&&typeof v==='object') return '{'+Object.keys(v).sort().filter(k=>v[k]!==undefined).map(k=>JSON.stringify(k)+':'+canon(v[k])).join(',')+'}';
+  return JSON.stringify(v===undefined?null:v);
+}
+const CHUNK=300;
+function localDocs(){
+  const m=new Map();
+  m.set('cfg/main',{v:2,start:S.start,target:S.target,targetFrom:S.targetFrom,tasks:S.tasks,profile:S.profile||{},calGoal:S.calGoal!==false,prevTarget:S.prevTarget||null});
+  Object.keys(S.days).forEach(k=>m.set('days/'+k,S.days[k]));
+  Object.keys(S.weights||{}).forEach(k=>m.set('weights/'+k,{kg:S.weights[k]}));
+  const n=Math.ceil(FOODS.length/CHUNK);
+  for(let i=0;i<n;i++) m.set('foods/f'+pad(i),{items:FOODS.slice(i*CHUNK,(i+1)*CHUNK)});
+  return m;
+}
+SYNC.boot=new Map(Array.from(localDocs()).map(e=>[e[0],canon(e[1])]));
+
+// What a document looked like when this device last agreed with the server.
+function baseline(path){
+  if(SYNC.last.has(path)) return SYNC.last.get(path);
+  return SYNC.ready?undefined:SYNC.boot.get(path);
+}
+function dirtyPath(path,docs){
+  const d=docs.get(path);
+  return (d===undefined?undefined:canon(d))!==baseline(path);
+}
+function dirtyPrefix(prefix,docs){
+  const keys=new Set();
+  const add=(_,p)=>{ if(p.indexOf(prefix)===0) keys.add(p); };
+  docs.forEach(add); SYNC.last.forEach(add);
+  if(!SYNC.ready) SYNC.boot.forEach(add);
+  for(const p of keys) if(dirtyPath(p,docs)) return true;
+  return false;
+}
+
+/* Remote -> this device */
+function busy(){
+  const a=document.activeElement;
+  if(a&&mainEl.contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return true;
+  if(tab==='edit'){
+    const t=document.getElementById('food-paste'),b=document.getElementById('backup');
+    if((t&&t.value)||(b&&b.value)) return true;
+  }
+  return false;
+}
+let renderPending=false;
+function scheduleRender(){
+  if(busy()){ renderPending=true; return; }
+  renderPending=false; render();
+}
+mainEl.addEventListener('focusout',()=>setTimeout(()=>{ if(renderPending) scheduleRender(); },60));
+
+function finish(name,snap,changed){
+  if(changed){ localSave(); scheduleRender(); }
+  if(!snap.metadata.fromCache&&!SYNC.first[name]){
+    SYNC.first[name]=true;
+    if(!SYNC.ready&&SYNC.first.cfg&&SYNC.first.days&&SYNC.first.weights&&SYNC.first.foods) becomeReady();
+  }
+}
+function applyCfg(path,data,docs){
+  if(!data||canon(data)===SYNC.last.get(path)||dirtyPath(path,docs)) return false;
+  const n=normalize({v:2,start:data.start,target:data.target,targetFrom:data.targetFrom,tasks:data.tasks,profile:data.profile,calGoal:data.calGoal,prevTarget:data.prevTarget,days:{},weights:{}});
+  if(!n) return false;
+  const before=canon(docs.get(path));
+  S.start=n.start;S.target=n.target;S.targetFrom=n.targetFrom;S.tasks=n.tasks;S.profile=n.profile;S.calGoal=n.calGoal;S.prevTarget=n.prevTarget;
+  const after=canon(localDocs().get(path));
+  SYNC.last.set(path,after); SYNC.boot.delete(path);
+  return before!==after;
+}
+function onCfg(snap){
+  let changed=false;
+  if(snap.exists) changed=applyCfg('cfg/main',snap.data(),localDocs());
+  finish('cfg',snap,changed);
+}
+function applyDay(id,data){
+  if(!isKey(id)) return null;
+  const n=normalize({start:S.start,days:{[id]:data}});
+  const d=n&&n.days[id];
+  if(!d) return null;
+  const same=!!S.days[id]&&canon(S.days[id])===canon(d);
+  S.days[id]=d;
+  return !same;
+}
+function removeDay(id){ if(S.days[id]){ delete S.days[id]; return true; } return false; }
+function applyWeight(id,data){
+  const kg=data&&data.kg;
+  if(!isKey(id)||typeof kg!=='number'||!isFinite(kg)||kg<20||kg>300) return null;
+  const v=Math.round(kg*10)/10;
+  const same=S.weights[id]===v;
+  S.weights[id]=v;
+  return !same;
+}
+function removeWeight(id){ if(S.weights[id]!==undefined){ delete S.weights[id]; return true; } return false; }
+function syncDocs(prefix,snap,apply,remove){
+  const docs=localDocs();
+  let changed=false;
+  snap.docChanges().forEach(ch=>{
+    const id=ch.doc.id,path=prefix+'/'+id;
+    if(ch.type==='removed'){
+      if(dirtyPath(path,docs)) return;
+      if(remove(id)) changed=true;
+      SYNC.last.delete(path); SYNC.boot.delete(path);
+      return;
+    }
+    const data=ch.doc.data();
+    if(!data||canon(data)===SYNC.last.get(path)||dirtyPath(path,docs)) return;
+    const r=apply(id,data);
+    if(r===null) return;
+    if(r) changed=true;
+    SYNC.last.set(path,canon(localDocs().get(path))); SYNC.boot.delete(path);
+  });
+  return changed;
+}
+function onDays(snap){ finish('days',snap,syncDocs('days',snap,applyDay,removeDay)); }
+function onWeights(snap){ finish('weights',snap,syncDocs('weights',snap,applyWeight,removeWeight)); }
+function onFoods(snap){
+  let changed=false;
+  const docs=localDocs();
+  const arr=snap.docs.slice().sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+  if(!dirtyPrefix('foods/',docs)&&(SYNC.ready||arr.length)){
+    const items=[];
+    arr.forEach(d=>{ const x=d.data(); if(x&&Array.isArray(x.items)) x.items.forEach(i=>items.push(i)); });
+    const before=canon(FOODS);
+    setFoods(items);
+    if(canon(FOODS)!==before){ localSaveFoods(); changed=true; }
+    Array.from(SYNC.last.keys()).forEach(p=>{ if(p.indexOf('foods/')===0) SYNC.last.delete(p); });
+    Array.from(SYNC.boot.keys()).forEach(p=>{ if(p.indexOf('foods/')===0) SYNC.boot.delete(p); });
+    localDocs().forEach((d,p)=>{ if(p.indexOf('foods/')===0) SYNC.last.set(p,canon(d)); });
+  }
+  finish('foods',snap,changed);
+}
+
+/* This device -> server */
+function becomeReady(){
+  SYNC.ready=true;
+  clearTimeout(SYNC.offT);
+  SYNC.boot=new Map();
+  flush();
+}
+async function flush(){
+  if(!SYNC.ready||SYNC.writing||!SYNC.db) return;
+  SYNC.writing=true;
+  let fail=null;
+  try{
+    for(let round=0;round<20;round++){
+      const docs=localDocs();
+      const ops=[];
+      docs.forEach((data,path)=>{ const j=canon(data); if(SYNC.last.get(path)!==j) ops.push({path,j}); });
+      SYNC.last.forEach((_,path)=>{ if(!docs.has(path)) ops.push({path,del:true}); });
+      if(!ops.length) break;
+      setSyncState('saving');
+      for(const op of ops){
+        const ref=SYNC.db.doc(op.path);
+        if(op.del){ await ref.delete(); SYNC.last.delete(op.path); }
+        else{ await ref.set(JSON.parse(op.j)); SYNC.last.set(op.path,op.j); }
+      }
+    }
+  }catch(e){ fail=e||{}; }
+  SYNC.writing=false;
+  if(!fail){ setSyncState('ok'); return; }
+  const code=fail.code;
+  if(code==='quota_exceeded'){ setSyncState('full'); return; }
+  setSyncState('error');
+  if(code==='unavailable'||code==='resource_exhausted'){
+    clearTimeout(SYNC.retry);
+    SYNC.retry=setTimeout(flush,6000);
+  }
+}
+syncHook=function(){
+  if(!SYNC.db||!SYNC.ready) return;
+  setSyncState('saving');
+  clearTimeout(SYNC.timer);
+  SYNC.timer=setTimeout(flush,700);
+};
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&SYNC.ready){ clearTimeout(SYNC.timer); flush(); }
+});
+
+async function startSync(){
+  let db=null;
+  try{ if(window.claude&&typeof window.claude.use==='function') db=await window.claude.use('db'); }catch(e){ db=null; }
+  if(!db){ setSyncState('local'); return; }
+  SYNC.db=db;
+  setSyncState('connecting');
+  SYNC.offT=setTimeout(()=>{ if(!SYNC.ready) setSyncState('offline'); },10000);
+  const err=()=>{ setSyncState('error'); };
+  try{
+    db.doc('cfg/main').onSnapshot(onCfg,err);
+    db.collection('days').onSnapshot(onDays,err);
+    db.collection('weights').onSnapshot(onWeights,err);
+    db.collection('foods').onSnapshot(onFoods,err);
+  }catch(e){ setSyncState('local'); }
+}
+setSyncState(window.claude?'connecting':'local');
+
+let lastToday=todayKey();
+function tick(){ const t=todayKey(); if(t!==lastToday){ lastToday=t; render(); } }
+setInterval(tick,60000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) tick(); });
+
+tab=tabFromHash();
+render();
+startSync();
+})();
+</script>
+
+</body></html>
