@@ -80,6 +80,9 @@ h1,h2{margin:0}
 .title{font-family:var(--font-display);font-weight:700;font-size:2.5rem;line-height:1;text-transform:uppercase;letter-spacing:.02em;text-wrap:balance}
 h2{font-family:var(--font-display);font-weight:700;font-size:var(--fs-lg);text-transform:uppercase;letter-spacing:.06em;text-wrap:balance}
 .eyebrow{margin:0;font-size:var(--fs-xs);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+[hidden]{display:none!important}
+.title.one{font-size:clamp(1.25rem,5.9vw,2.25rem);white-space:nowrap}
+.cbody{display:flex;flex-direction:column;gap:10px}
 .hint{margin:0;font-size:var(--fs-sm);color:var(--ink-2)}
 
 /* Hero */
@@ -772,7 +775,7 @@ function viewToday(){
   const noFoods=FOODS.length===0
     ?h('div',{class:'callout'},
         h('p',{class:'hint',text:'Chưa có bảng thực phẩm. Dán bảng từ Google Sheets ở tab Cấu hình để app tự tính calo theo tên món và khối lượng.'}),
-        h('button',{class:'btn small',type:'button',onclick:()=>go('edit')},'Thêm bảng thực phẩm'))
+        h('button',{class:'btn small',type:'button',onclick:()=>{OPEN.foods=true;go('edit');}},'Thêm bảng thực phẩm'))
     :null;
   const dl=h('datalist',{id:'food-list'},FOODS.slice(0,1500).map(f=>h('option',{value:f.n})));
 
@@ -931,7 +934,7 @@ function viewToday(){
     if(noteText&&after) noteText.textContent='Thử thách đã kết thúc. Bạn hoàn thành '+sm.count+'/30 ngày.';
   }
 
-  const v=h('div',{class:'view'},h('h1',{class:'sr',text:'Cập nhật'}),hero,note,datebar,tasksSec,calSec);
+  const v=h('div',{class:'view'},h('h1',{class:'sr',text:'Cập nhật'}),hero,note,datebar,tasksSec,S.calGoal===false?null:calSec);
   refresh();
   return v;
 }
@@ -1075,7 +1078,7 @@ function viewCal(){
   const v=h('div',{class:'view'},
     h('div',{class:'hero'},
       h('p',{class:'eyebrow',text:fmtDMY(S.start)+' – '+fmtDMY(end)}),
-      h('h1',{class:'title',text:'Lịch 30 ngày challenge'})),
+      h('h1',{class:'title one',text:'Lịch 30 ngày challenge'})),
     h('div',{class:'cal-stats'},
       h('div',{class:'stat'},h('b',{text:String(sm.count)}),h('span',{text:'ngày hoàn thành'})),
       h('div',{class:'stat'},h('b',{text:String(sm.cur)}),h('span',{text:'chuỗi hiện tại'})),
@@ -1591,6 +1594,19 @@ function tdeeSection(onApply){
     note);
 }
 
+const OPEN={foods:false,tdee:false};
+function collapsible(sec,key){
+  const hd=sec.querySelector('h2');
+  const body=h('div',{class:'cbody',id:'body-'+key});
+  Array.from(sec.children).filter(c=>c!==hd).forEach(c=>body.append(c));
+  const btn=h('button',{class:'btn small',type:'button','aria-controls':'body-'+key});
+  const paint=()=>{ body.hidden=!OPEN[key]; btn.textContent=OPEN[key]?'Thu gọn':'Mở rộng'; btn.setAttribute('aria-expanded',OPEN[key]?'true':'false'); };
+  btn.addEventListener('click',()=>{ OPEN[key]=!OPEN[key]; paint(); });
+  paint();
+  sec.append(h('div',{class:'sec-head'},hd,btn),body);
+  return sec;
+}
+
 function viewEdit(){
   // Task list
   const list=h('div',{class:'elist'});
@@ -1705,19 +1721,18 @@ function viewEdit(){
     h('section',{class:'section','aria-labelledby':'h-start'},
       h('h2',{id:'h-start',text:'Ngày bắt đầu'}),
       startInp,endText),
-    themeSection(),
     h('section',{class:'group','aria-labelledby':'h-list'},
       h('h2',{id:'h-list',text:'Việc hằng ngày'}),
       h('p',{class:'hint',text:'Việc mới chỉ tính từ hôm nay. Các ngày đã qua giữ nguyên kết quả.'}),
-      calPin,
-      list,addForm),
+      list,addForm,calPin),
     calOn?h('section',{class:'group','aria-labelledby':'h-kcal'},
       h('h2',{id:'h-kcal',text:'Mục tiêu calo'}),
       h('label',{class:'hint',for:'cal-target',text:'Tối đa mỗi ngày'}),
       h('div',{class:'fld-row'},tgt,h('span',{text:'kcal'})),
       tgtHint):null,
-    calOn?tdeeSection(n=>{ setTarget(n); tgt.value=String(S.target); tgtHintText(); }):null,
-    foodsSection(),
+    calOn?collapsible(foodsSection(),'foods'):null,
+    calOn?collapsible(tdeeSection(n=>{ setTarget(n); tgt.value=String(S.target); tgtHintText(); }),'tdee'):null,
+    themeSection(),
     exportSection(),
     h('section',{class:'group','aria-labelledby':'h-backup'},
       h('h2',{id:'h-backup',text:'Sao lưu'}),
