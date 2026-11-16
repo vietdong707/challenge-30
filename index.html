@@ -1,5 +1,6 @@
 <!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Challenge 30 ngày (dùng thử)</title>
+<title>Challenge 30 ngày</title>
+<meta name="robots" content="noindex">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
 <style>
@@ -261,6 +262,14 @@ textarea.fld{padding:10px 12px;min-height:6.5rem;resize:vertical;font-size:var(-
 .tabs button[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
 .tabs svg{width:22px;height:22px}
 
+.synchead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.synchead .sync{margin-bottom:0;min-width:0;flex:1 1 auto}
+.synchead .btn{min-height:36px}
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));background:rgba(8,12,20,.6)}
+.dialog{width:100%;max-width:440px;max-height:90vh;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:20px;border-radius:16px;background:var(--surface);color:var(--ink);border:1.5px solid var(--line)}
+.dialog h2{font-size:var(--fs-lg)}
+.dlg-btns{display:flex;flex-direction:column;gap:8px}
+.dlg-btns .btn{width:100%}
 .sync{display:flex;align-items:center;gap:8px;min-height:20px;margin-bottom:12px;font-size:var(--fs-xs);font-weight:500;color:var(--ink-2)}
 .sync::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--ink-2)}
 .sync[data-s="ok"]::before{background:var(--accent)}
@@ -296,7 +305,7 @@ textarea.fld{padding:10px 12px;min-height:6.5rem;resize:vertical;font-size:var(-
 }
 </style>
 
-<div class="wrap"><div id="sync" class="sync" role="status" aria-live="polite"></div><main id="main" tabindex="-1"></main></div>
+<div class="wrap"><div class="synchead"><div id="sync" class="sync" role="status" aria-live="polite"><span id="sync-t"></span></div><button id="sync-b" class="btn small" type="button" hidden>Đăng nhập Google</button></div><div id="auth-note" class="note" role="status" hidden style="margin-bottom:12px"></div><main id="main" tabindex="-1"></main></div>
 <nav class="tabs" aria-label="Điều hướng chính">
   <div class="inner">
     <button type="button" data-tab="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg><span>Cập nhật</span></button>
@@ -1685,7 +1694,7 @@ function viewEdit(){
     S=n; viewKey=null; save(); render();
   });
   const resetBtn=h('button',{class:'btn danger',type:'button'},'Xóa toàn bộ và bắt đầu lại');
-  arm(resetBtn,'Xóa toàn bộ và bắt đầu lại','Chắc chắn xóa hết?',()=>{ S=fresh(); viewKey=null; save(); go('today'); });
+  arm(resetBtn,'Xóa toàn bộ và bắt đầu lại',(FB.user?'Chắc chắn xóa hết, cả trên đám mây?':'Chắc chắn xóa hết?'),()=>{ S=fresh(); viewKey=null; save(); go('today'); });
 
   const calOn=S.calGoal!==false;
   const calCb=h('input',{type:'checkbox',id:'cal-on',checked:calOn});
@@ -1734,9 +1743,10 @@ function viewEdit(){
     calOn?collapsible(tdeeSection(n=>{ setTarget(n); tgt.value=String(S.target); tgtHintText(); }),'tdee'):null,
     themeSection(),
     exportSection(),
+    accountSection(),
     h('section',{class:'group','aria-labelledby':'h-backup'},
       h('h2',{id:'h-backup',text:'Sao lưu'}),
-      h('p',{class:'hint',text:'Khi app kết nối được, dữ liệu tự đồng bộ giữa các thiết bị mở cùng liên kết bằng cùng tài khoản Claude (xem dòng trạng thái ở đầu trang). Nếu chỉ hiện "Chỉ lưu trên máy này", dữ liệu nằm trong trình duyệt này và sẽ mất khi xóa dữ liệu trình duyệt. Bản sao lưu dưới đây là phòng khi cần và không gồm bảng thực phẩm.'}),
+      h('p',{class:'hint',text:'Dữ liệu lưu trong trình duyệt này và sẽ mất nếu bạn xóa dữ liệu trình duyệt. Đăng nhập Google để tự đồng bộ giữa các thiết bị. Bản sao lưu dưới đây là phòng khi cần và không gồm bảng thực phẩm (bảng thực phẩm xuất riêng bằng Excel).'}),
       ta,
       h('div',{class:'btn-row'},copyBtn,restoreBtn),
       msg),
@@ -1771,9 +1781,9 @@ function tabFromHash(){
 tabBtns.forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.tab==='today') viewKey=null; go(b.dataset.tab); }));
 window.addEventListener('hashchange',()=>{ const t=tabFromHash(); if(t!==tab){ tab=t; render(); window.scrollTo(0,0); } });
 
-/* ---------- Cloud sync (db capability) ---------- */
+/* ---------- Cloud sync (Firestore) ---------- */
 // Documents: cfg/main, days/<date>, weights/<date>, foods/f00... Each device writes only the documents it changed.
-const SYNC={db:null,ready:false,writing:false,timer:0,retry:0,offT:0,state:'local',last:new Map(),boot:new Map(),first:{cfg:false,days:false,weights:false,foods:false}};
+const SYNC={unsubs:[],db:null,ready:false,writing:false,timer:0,retry:0,offT:0,state:'local',last:new Map(),boot:new Map(),first:{cfg:false,days:false,weights:false,foods:false}};
 const SYNC_TXT={
   local:'Chỉ lưu trên máy này',
   connecting:'Đang kết nối để đồng bộ…',
@@ -1781,7 +1791,10 @@ const SYNC_TXT={
   saving:'Đang lưu…',
   offline:'Chưa kết nối được. Dữ liệu đang lưu tạm trên máy này.',
   error:'Chưa lưu lên máy chủ được. Dữ liệu vẫn nằm trên máy này.',
-  full:'Kho lưu trữ đồng bộ đã đầy. Dữ liệu vẫn nằm trên máy này.'
+  full:'Đã hết hạn mức đồng bộ hôm nay. Dữ liệu vẫn nằm trên máy này.',
+  denied:'Quy tắc bảo mật của Firebase chưa cho phép lưu. Dữ liệu vẫn nằm trên máy này.',
+  nosdk:'Chưa tải được dịch vụ đăng nhập. Kiểm tra mạng rồi tải lại trang.',
+  choose:'Đang chờ bạn chọn cách đồng bộ…'
 };
 SYNC.ok=()=>SYNC.state==='ok'||SYNC.state==='saving';
 function setSyncState(s){
@@ -1789,7 +1802,9 @@ function setSyncState(s){
   const el=document.getElementById('sync');
   if(!el) return;
   el.setAttribute('data-s',s);
-  el.textContent=SYNC_TXT[s]||'';
+  const t=document.getElementById('sync-t');
+  const who=(FB.user&&s!=='local'&&s!=='nosdk')?((FB.user.email||FB.user.displayName||'')+' · '):'';
+  if(t) t.textContent=who+(SYNC_TXT[s]||'');
 }
 function canon(v){
   if(Array.isArray(v)) return '['+v.map(canon).join(',')+']';
@@ -1943,6 +1958,7 @@ async function flush(){
       if(!ops.length) break;
       setSyncState('saving');
       for(const op of ops){
+        if(!SYNC.db) throw {code:'stopped'};
         const ref=SYNC.db.doc(op.path);
         if(op.del){ await ref.delete(); SYNC.last.delete(op.path); }
         else{ await ref.set(JSON.parse(op.j)); SYNC.last.set(op.path,op.j); }
@@ -1952,9 +1968,11 @@ async function flush(){
   SYNC.writing=false;
   if(!fail){ setSyncState('ok'); return; }
   const code=fail.code;
-  if(code==='quota_exceeded'){ setSyncState('full'); return; }
+  if(code==='stopped') return;
+  if(code==='resource-exhausted'){ setSyncState('full'); clearTimeout(SYNC.retry); SYNC.retry=setTimeout(flush,600000); return; }
+  if(code==='permission-denied'){ setSyncState('denied'); return; }
   setSyncState('error');
-  if(code==='unavailable'||code==='resource_exhausted'){
+  if(code==='unavailable'){
     clearTimeout(SYNC.retry);
     SYNC.retry=setTimeout(flush,6000);
   }
@@ -1969,22 +1987,279 @@ document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&SYNC.ready){ clearTimeout(SYNC.timer); flush(); }
 });
 
-async function startSync(){
-  let db=null;
-  try{ if(window.claude&&typeof window.claude.use==='function') db=await window.claude.use('db'); }catch(e){ db=null; }
-  if(!db){ setSyncState('local'); return; }
-  SYNC.db=db;
+/* ---------- Firebase: Google sign-in + Firestore ---------- */
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyCaaK9tHX44utB3xhUV2g1jK2OI6uhtlCA",
+  authDomain:"challenge-30-b4f06.firebaseapp.com",
+  projectId:"challenge-30-b4f06",
+  storageBucket:"challenge-30-b4f06.firebasestorage.app",
+  messagingSenderId:"228627082416",
+  appId:"1:228627082416:web:1741fd9c50eb3823299f75"
+};
+const FB_VER='12.19.0';
+const LINK_KEY='challenge30.link';
+const FB={mods:null,loading:null,auth:null,fs:null,user:null,gen:0};
+const AUTH={busy:false};
+const getLink=()=>{ try{ return localStorage.getItem(LINK_KEY); }catch(e){ return null; } };
+const setLink=v=>{ try{ if(v) localStorage.setItem(LINK_KEY,v); else localStorage.removeItem(LINK_KEY); }catch(e){} };
+function authNote(text){
+  const el=document.getElementById('auth-note');
+  if(!el) return;
+  el.textContent=text||''; el.hidden=!text;
+}
+function paintAuthUI(){
+  const b=document.getElementById('sync-b');
+  if(!b) return;
+  if(FB.user){ b.hidden=true; return; }
+  b.hidden=false; b.disabled=AUTH.busy;
+  b.textContent=AUTH.busy?'Đang đăng nhập…':'Đăng nhập Google';
+}
+function authChanged(){ paintAuthUI(); if(tab==='edit') scheduleRender(); }
+function authErr(e){
+  const c=(e&&e.code)||'';
+  if(c==='auth/popup-blocked') return 'Trình duyệt đã chặn cửa sổ đăng nhập. Hãy cho phép cửa sổ bật lên (pop-up) cho trang này rồi bấm lại.';
+  if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request') return 'Bạn đã đóng cửa sổ đăng nhập.';
+  if(c==='auth/unauthorized-domain') return 'Tên miền của trang này chưa được thêm vào danh sách cho phép trong Firebase (Authorized domains).';
+  if(c==='auth/operation-not-allowed') return 'Đăng nhập bằng Google chưa được bật trong Firebase.';
+  if(c==='auth/network-request-failed') return 'Không có kết nối mạng. Hãy thử lại khi có mạng.';
+  return 'Không đăng nhập được'+(c?' ('+c+')':'')+'. Nếu bạn đang mở trong Zalo hoặc Facebook, hãy mở bằng Chrome hoặc Safari.';
+}
+
+function loadFB(){
+  if(FB.mods) return Promise.resolve(FB.mods);
+  if(FB.loading) return FB.loading;
+  FB.loading=(async()=>{
+    try{
+      let m;
+      if(window.__fbMock) m=window.__fbMock;
+      else{
+        const base='https://www.gstatic.com/firebasejs/'+FB_VER+'/';
+        const parts=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
+        m=Object.assign({},parts[0],parts[1],parts[2]);
+      }
+      const app=m.initializeApp(FIREBASE_CONFIG);
+      FB.auth=m.getAuth(app);
+      try{ FB.fs=m.initializeFirestore(app,{localCache:m.persistentLocalCache({tabManager:m.persistentMultipleTabManager()})}); }
+      catch(e){ FB.fs=m.getFirestore(app); }
+      FB.mods=m;
+      return m;
+    }catch(e){ FB.loading=null; throw e; }
+  })();
+  return FB.loading;
+}
+
+function localHasData(){
+  return Object.keys(S.days).length>0||Object.keys(S.weights||{}).length>0||FOODS.length>0||S.target!==null||S.calGoal===false
+    ||canon(S.tasks.map(t=>t.name))!==canon(DEFAULT_TASKS().map(t=>t.name));
+}
+function clearLocal(){
+  S=fresh(); setFoods([]); viewKey=null; calSel=null;
+  localSave(); localSaveFoods();
+}
+function bootNow(){ return new Map(Array.from(localDocs()).map(e=>[e[0],canon(e[1])])); }
+
+function stopCloud(){
+  (SYNC.unsubs||[]).forEach(f=>{ try{ f(); }catch(e){} });
+  SYNC.unsubs=[];
+  clearTimeout(SYNC.timer); clearTimeout(SYNC.retry); clearTimeout(SYNC.offT);
+  SYNC.db=null; SYNC.ready=false; SYNC.writing=false;
+  SYNC.last=new Map(); SYNC.first={cfg:false,days:false,weights:false,foods:false};
+}
+function onCloudError(e){
+  setSyncState((e&&e.code==='permission-denied')?'denied':'error');
+}
+function startCloud(user){
+  stopCloud();
+  setLink(user.uid);
+  const m=FB.mods,fs=FB.fs,base=['users',user.uid];
+  const ref=p=>m.doc.apply(null,[fs].concat(base,p.split('/')));
+  const col=n=>m.collection.apply(null,[fs].concat(base,[n]));
+  SYNC.db={doc:p=>({set:d=>m.setDoc(ref(p),d),delete:()=>m.deleteDoc(ref(p))})};
+  SYNC.boot=bootNow();
   setSyncState('connecting');
   SYNC.offT=setTimeout(()=>{ if(!SYNC.ready) setSyncState('offline'); },10000);
-  const err=()=>{ setSyncState('error'); };
-  try{
-    db.doc('cfg/main').onSnapshot(onCfg,err);
-    db.collection('days').onSnapshot(onDays,err);
-    db.collection('weights').onSnapshot(onWeights,err);
-    db.collection('foods').onSnapshot(onFoods,err);
-  }catch(e){ setSyncState('local'); }
+  const opt={includeMetadataChanges:true};
+  const err=e=>onCloudError(e);
+  SYNC.unsubs=[
+    m.onSnapshot(ref('cfg/main'),opt,s=>onCfg({exists:s.exists(),data:()=>s.data(),metadata:s.metadata}),err),
+    m.onSnapshot(col('days'),opt,onDays,err),
+    m.onSnapshot(col('weights'),opt,onWeights,err),
+    m.onSnapshot(col('foods'),opt,onFoods,err)
+  ];
 }
-setSyncState(window.claude?'connecting':'local');
+async function wipeCloud(uid){
+  const m=FB.mods,fs=FB.fs;
+  const refs=[m.doc(fs,'users',uid,'cfg','main')];
+  for(const c of ['days','weights','foods']){
+    const s=await m.getDocsFromServer(m.collection(fs,'users',uid,c));
+    s.docs.forEach(d=>refs.push(d.ref));
+  }
+  for(let i=0;i<refs.length;i+=400){
+    const b=m.writeBatch(fs);
+    refs.slice(i,i+400).forEach(r=>b.delete(r));
+    await b.commit();
+  }
+}
+
+/* Dialog for the first sign-in on a device */
+function closeModal(){ const o=document.querySelector('.overlay'); if(o) o.remove(); }
+function modal(title,paras,buttons){
+  closeModal();
+  const box=h('div',{class:'dialog'},h('h2',{id:'dlg-t',text:title}),paras.map(t=>h('p',{class:'hint',text:t})),h('div',{class:'dlg-btns'},buttons));
+  const ov=h('div',{class:'overlay',role:'dialog','aria-modal':'true','aria-labelledby':'dlg-t'},box);
+  document.body.append(ov);
+  const f=box.querySelector('button'); if(f) f.focus();
+}
+function dlgBtn(label,cls,fn,twoStep){
+  const b=h('button',{class:'btn'+(cls?' '+cls:''),type:'button'},label);
+  if(twoStep) arm(b,label,'Bấm lần nữa để xác nhận',fn); else b.addEventListener('click',fn);
+  return b;
+}
+function cancelSignIn(){ closeModal(); const m=FB.mods; if(m&&FB.auth) m.signOut(FB.auth); }
+function askBoth(user){
+  setSyncState('choose');
+  modal('Máy này và đám mây đều có dữ liệu',[
+    'Tài khoản '+(user.email||'này')+' đã có dữ liệu trên đám mây, và máy này cũng đang có dữ liệu riêng. Bạn muốn giữ bản nào?',
+    'Gộp cả hai: giữ mọi ngày có ở một trong hai nơi. Nếu cùng một ngày có ở cả hai nơi thì lấy bản trên đám mây.'
+  ],[
+    dlgBtn('Gộp cả hai (khuyên dùng)','primary',()=>{ closeModal(); startCloud(user); }),
+    dlgBtn('Chỉ giữ dữ liệu trên đám mây','danger',()=>{ closeModal(); clearLocal(); startCloud(user); },true),
+    dlgBtn('Chỉ giữ dữ liệu trên máy này','danger',async()=>{
+      closeModal(); setSyncState('connecting');
+      try{ await wipeCloud(user.uid); startCloud(user); }
+      catch(e){ onCloudError(e); authNote('Không xóa được dữ liệu cũ trên đám mây. Hãy thử lại.'); }
+    },true),
+    dlgBtn('Hủy đăng nhập','',cancelSignIn)
+  ]);
+}
+function askOther(user){
+  setSyncState('choose');
+  modal('Dữ liệu trên máy thuộc tài khoản khác',[
+    'Dữ liệu đang có trên máy này thuộc về một tài khoản Google khác. Để tránh lẫn dữ liệu giữa hai tài khoản, hãy xóa dữ liệu trên máy trước khi dùng tài khoản '+(user.email||'này')+'.',
+    'Dữ liệu của tài khoản kia vẫn còn trên đám mây, bạn có thể đăng nhập lại để lấy về.'
+  ],[
+    dlgBtn('Xóa dữ liệu trên máy và tiếp tục','danger',()=>{ closeModal(); clearLocal(); startCloud(user); },true),
+    dlgBtn('Hủy đăng nhập','',cancelSignIn)
+  ]);
+}
+
+async function beginForUser(user){
+  const gen=++FB.gen;
+  setSyncState('connecting');
+  const m=FB.mods,L=getLink();
+  if(L===user.uid){ startCloud(user); return; }
+  let cloudHas;
+  try{
+    const s=await m.getDocFromServer(m.doc(FB.fs,'users',user.uid,'cfg','main'));
+    cloudHas=s.exists();
+  }catch(e){
+    if(gen!==FB.gen) return;
+    if(e&&e.code==='permission-denied'){ setSyncState('denied'); return; }
+    setSyncState('offline');
+    authNote('Cần có mạng để đăng nhập lần đầu trên máy này. Khi có mạng lại app sẽ tự thử tiếp.');
+    return;
+  }
+  if(gen!==FB.gen) return;
+  const localHas=localHasData();
+  if(!localHas||(!cloudHas&&L===null)){ startCloud(user); return; }
+  if(L!==null&&L!==user.uid) askOther(user); else askBoth(user);
+}
+function onUser(user){
+  AUTH.busy=false;
+  if(!user){
+    FB.gen++; FB.user=null; closeModal(); stopCloud();
+    setSyncState('local'); authChanged();
+    return;
+  }
+  if(FB.user&&FB.user.uid===user.uid&&SYNC.db) return;
+  FB.user=user; authNote(''); authChanged();
+  beginForUser(user);
+}
+async function signIn(){
+  if(AUTH.busy) return;
+  AUTH.busy=true; paintAuthUI(); authNote('');
+  try{
+    const m=FB.mods||await loadFB();
+    await m.signInWithPopup(FB.auth,new m.GoogleAuthProvider());
+  }catch(e){
+    authNote(authErr(e));
+    if(!FB.mods) setSyncState('nosdk');
+  }
+  AUTH.busy=false; paintAuthUI();
+}
+async function signOutPlain(){
+  try{ await FB.mods.signOut(FB.auth); authNote('Đã đăng xuất. Dữ liệu vẫn còn trên máy này.'); }
+  catch(e){ authNote('Không đăng xuất được. Hãy thử lại.'); }
+}
+async function signOutAndWipe(){
+  const m=FB.mods;
+  stopCloud();
+  try{ await m.signOut(FB.auth); }catch(e){}
+  clearLocal(); setLink(null);
+  try{ await m.terminate(FB.fs); await m.clearIndexedDbPersistence(FB.fs); }catch(e){}
+  location.reload();
+}
+async function deleteCloud(){
+  const user=FB.user;
+  if(!user) return;
+  authNote('Đang xóa dữ liệu trên đám mây…');
+  stopCloud();
+  try{
+    await wipeCloud(user.uid);
+    setLink(null);
+    authNote('Đã xóa dữ liệu của bạn trên đám mây. Dữ liệu trên máy này vẫn còn. Bạn đã được đăng xuất.');
+    await FB.mods.signOut(FB.auth);
+  }catch(e){
+    authNote('Chưa xóa được dữ liệu trên đám mây. Hãy kiểm tra mạng rồi thử lại.');
+    startCloud(user);
+  }
+}
+async function initAuth(){
+  const b=document.getElementById('sync-b');
+  if(b) b.addEventListener('click',signIn);
+  paintAuthUI();
+  window.addEventListener('offline',()=>{ if(SYNC.db) setSyncState('offline'); });
+  window.addEventListener('online',()=>{
+    if(!FB.user) return;
+    if(!SYNC.db){ beginForUser(FB.user); return; }
+    if(SYNC.ready){ setSyncState('saving'); flush(); }
+  });
+  try{
+    const m=await loadFB();
+    m.onAuthStateChanged(FB.auth,onUser);
+  }catch(e){ setSyncState('nosdk'); }
+}
+
+function accountSection(){
+  const u=FB.user;
+  const kids=[h('h2',{id:'h-acc',text:'Tài khoản và đồng bộ'})];
+  if(!u){
+    const b=h('button',{class:'btn primary',type:'button'},'Đăng nhập bằng Google');
+    b.addEventListener('click',signIn);
+    kids.push(
+      h('p',{class:'hint',text:'Đăng nhập để lưu dữ liệu lên đám mây và dùng trên nhiều thiết bị. Nếu không đăng nhập, dữ liệu chỉ nằm trong trình duyệt này.'}),
+      h('div',{class:'btn-row'},b),
+      h('p',{class:'hint',text:'Nếu mở link trong Zalo, Facebook hoặc Messenger, Google có thể chặn đăng nhập. Hãy mở bằng Chrome hoặc Safari.'}));
+  }else{
+    const out=h('button',{class:'btn',type:'button'},'Đăng xuất');
+    out.addEventListener('click',signOutPlain);
+    const wipe=h('button',{class:'btn danger',type:'button'},'Đăng xuất và xóa dữ liệu trên máy này');
+    arm(wipe,'Đăng xuất và xóa dữ liệu trên máy này','Chắc chắn xóa dữ liệu trên máy?',signOutAndWipe);
+    const del=h('button',{class:'btn danger',type:'button'},'Xóa dữ liệu của tôi trên đám mây');
+    arm(del,'Xóa dữ liệu của tôi trên đám mây','Chắc chắn xóa trên đám mây?',deleteCloud);
+    kids.push(
+      h('p',{class:'hint',text:'Đang đăng nhập: '+(u.email||u.displayName||'tài khoản Google')+'.'}),
+      h('div',{class:'btn-row'},out),
+      h('p',{class:'hint',text:'Dùng máy chung hoặc máy của người khác? Bấm "Đăng xuất và xóa dữ liệu trên máy này". Dữ liệu trên đám mây vẫn còn, đăng nhập lại là lấy về được.'}),
+      h('div',{class:'btn-row'},wipe),
+      h('p',{class:'hint',text:'Xóa dữ liệu trên đám mây sẽ xóa hẳn dữ liệu của tài khoản này ở mọi thiết bị đang đăng nhập. Dữ liệu trên máy này vẫn giữ lại.'}),
+      h('div',{class:'btn-row'},del));
+  }
+  kids.push(h('p',{class:'hint',text:'Dữ liệu đồng bộ gồm việc đã làm, bữa ăn, calo, cân nặng và bảng thực phẩm. Trong app, mỗi người chỉ đọc được dữ liệu của chính mình. Người quản lý dự án Firebase có quyền kỹ thuật xem cơ sở dữ liệu.'}));
+  return h('section',{class:'group','aria-labelledby':'h-acc'},kids);
+}
+
+setSyncState('local');
 
 let lastToday=todayKey();
 function tick(){ const t=todayKey(); if(t!==lastToday){ lastToday=t; render(); } }
@@ -1993,7 +2268,7 @@ document.addEventListener('visibilitychange',()=>{ if(!document.hidden) tick(); 
 
 tab=tabFromHash();
 render();
-startSync();
+initAuth();
 })();
 </script>
 
