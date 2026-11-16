@@ -270,6 +270,7 @@ textarea.fld{padding:10px 12px;min-height:6.5rem;resize:vertical;font-size:var(-
 .dialog h2{font-size:var(--fs-lg)}
 .dlg-btns{display:flex;flex-direction:column;gap:8px}
 .dlg-btns .btn{width:100%}
+.note a{color:inherit;font-weight:600;white-space:nowrap}
 .sync{display:flex;align-items:center;gap:8px;min-height:20px;margin-bottom:12px;font-size:var(--fs-xs);font-weight:500;color:var(--ink-2)}
 .sync::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--ink-2)}
 .sync[data-s="ok"]::before{background:var(--accent)}
@@ -332,6 +333,9 @@ const ACT=[
 const WD=['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'];
 const HASH={today:'cap-nhat',cal:'lich',edit:'cau-hinh'};
 const MAX_FOODS=3000;
+const VIEW_TOKEN=(location.hash.match(/^#xem=([A-Za-z0-9]{16,64})$/)||[])[1]||null;
+const READONLY=!!VIEW_TOKEN;
+const VIEW={name:'',updated:0};
 
 /* ---------- Theme (stored on this device only) ---------- */
 const TKEY='challenge30.theme';
@@ -404,6 +408,7 @@ function loadFoods(){
 }
 let syncHook=null;
 function localSaveFoods(){
+  if(READONLY) return;
   try{ localStorage.setItem(FKEY,JSON.stringify(FOODS)); }catch(e){ saveOK=false; }
 }
 function saveFoods(){ localSaveFoods(); if(syncHook) syncHook(); }
@@ -493,6 +498,7 @@ function load(){
 let S=load();
 loadFoods();
 function localSave(){
+  if(READONLY) return;
   try{ localStorage.setItem(KEY,JSON.stringify(S)); saveOK=true; }catch(e){ saveOK=false; }
 }
 function save(){ localSave(); if(syncHook) syncHook(); }
@@ -714,13 +720,13 @@ function viewToday(){
   if(key>end) key=end;
   dropBlankItems(key);
   const idx=diffDays(S.start,key)+1;
-  const editable=key<=today;
+  const editable=!READONLY&&key<=today;
   const before=today<S.start,after=today>end,isToday=key===today;
 
   const stCur=h('b'),stDone=h('b');
   const lane=makeLane();
   const hero=h('header',{class:'hero'},
-    h('p',{class:'eyebrow',text:'Challenge 30 ngày'}),
+    h('p',{class:'eyebrow',text:(READONLY&&VIEW.name)?'Challenge 30 ngày · '+VIEW.name:'Challenge 30 ngày'}),
     h('div',{class:'dayrow'},
       h('div',{class:'dayno'},h('span',{class:'daynum',text:String(idx)}),h('span',{class:'of',text:'/30'})),
       h('div',{class:'stats'},
@@ -744,6 +750,7 @@ function viewToday(){
     note=h('div',{class:'note'},noteText,h('button',{class:'btn small',type:'button',onclick:()=>{viewKey=null;render();}},'Về hôm nay'));
   }
 
+  if(READONLY) note=null;
   const prevBtn=h('button',{class:'iconbtn',type:'button','aria-label':'Ngày trước',disabled:key<=S.start,onclick:()=>{viewKey=addDays(key,-1);render();}},ico(P.left));
   const nextBtn=h('button',{class:'iconbtn',type:'button','aria-label':'Ngày sau',disabled:key>=today||key>=end,onclick:()=>{viewKey=addDays(key,1);render();}},ico(P.right));
   const datebar=h('div',{class:'datebar'},prevBtn,h('span',{class:'datetext',text:weekday(key)+', '+fmtDMY(key)}),nextBtn);
@@ -781,7 +788,8 @@ function viewToday(){
   const meter=h('div',{class:'meter',role:'presentation'},fill);
   const calMsg=h('p',{class:'calmsg'});
   const setBtn=h('button',{class:'btn small',type:'button',onclick:()=>{go('edit');focusSoon('cal-target');}},'Đặt mục tiêu calo');
-  const noFoods=FOODS.length===0
+  if(READONLY) setBtn.style.display='none';
+  const noFoods=(FOODS.length===0&&!READONLY)
     ?h('div',{class:'callout'},
         h('p',{class:'hint',text:'Chưa có bảng thực phẩm. Dán bảng từ Google Sheets ở tab Cấu hình để app tự tính calo theo tên món và khối lượng.'}),
         h('button',{class:'btn small',type:'button',onclick:()=>{OPEN.foods=true;go('edit');}},'Thêm bảng thực phẩm'))
@@ -798,6 +806,7 @@ function viewToday(){
     const saveBtn=h('button',{class:'btn small isave',type:'button',hidden:true},'Lưu vào bảng thực phẩm');
     let kv=null,mode='';
     const del=h('button',{class:'iconbtn',type:'button','aria-label':'Xóa món',disabled:!editable},ico(P.x));
+    if(READONLY) del.style.display='none';
     const el=h('div',{class:'item'},nameI,h('div',{class:'irow'},h('div',{class:'iq'},qtyI,unitS),kcalBox,del),sub,saveBtn);
 
     function paint(){
@@ -827,7 +836,8 @@ function viewToday(){
       sub.textContent=f
         ?fmtNum(f.k)+' kcal / '+fmtNum(f.b)+' '+f.u
         :(item.n.trim()?(FOODS.length?'Không thấy trong bảng thực phẩm, hãy nhập calo.':'Nhập calo của món.'):'');
-      saveBtn.hidden=!(editable&&!f&&item.n.trim()!==''&&item.q!==null&&item.q>0&&item.k>0&&FOODS.length<MAX_FOODS);
+      if(READONLY) sub.textContent='';
+      saveBtn.hidden=READONLY||!(editable&&!f&&item.n.trim()!==''&&item.q!==null&&item.q>0&&item.k>0&&FOODS.length<MAX_FOODS);
     }
     function recalc(){
       const f=lookup(item.n);
@@ -907,7 +917,7 @@ function viewToday(){
       b.mk.textContent=mi.skip?'Bỏ bữa':fmtNum(mi.total)+' kcal';
       b.mk.classList.toggle('skipped',mi.skip);
       b.itemsBox.hidden=mi.skip;
-      b.addBtn.hidden=mi.skip;
+      b.addBtn.hidden=mi.skip||READONLY;
       b.skipCb.disabled=!editable||(mi.filled>0&&!mi.skip);
     }
 
@@ -1011,6 +1021,7 @@ function viewCal(){
   const wInp=h('input',{class:'fld wf',id:'cal-weight',type:'text',inputmode:'decimal',autocomplete:'off',placeholder:'Ví dụ 72,5',maxlength:'6'});
   const wMsg=h('p',{class:'msg'});
   const openBtn=h('button',{class:'btn',type:'button',onclick:()=>{ viewKey=calSel; go('today'); }},'Mở ngày này');
+  if(READONLY){ wInp.disabled=true; wInp.placeholder='—'; }
   const wBox=h('div',{class:'wbox'});
 
   function paintDay(){
@@ -1702,7 +1713,7 @@ function viewEdit(){
   const calPin=h('label',{class:'pin',for:'cal-on'},calCb,
     h('span',{class:'pt'},
       h('b',{text:'Calo trong ngày'}),
-      h('span',{class:'hint',text:calOn?'Đang tính: một ngày chỉ hoàn thành khi tổng calo không vượt mục tiêu.':'Challenge này không có mục tiêu calo. Phần calo ở tab Cập nhật chỉ để ghi lại.'})));
+      h('span',{class:'hint',text:calOn?'Đang tính: một ngày chỉ hoàn thành khi tổng calo không vượt mục tiêu.':'Challenge này không có mục tiêu calo.'})));
 
   // Theme (per device)
   const themeBtns=[];
@@ -1744,6 +1755,7 @@ function viewEdit(){
     themeSection(),
     exportSection(),
     accountSection(),
+    shareSection(),
     h('section',{class:'group','aria-labelledby':'h-backup'},
       h('h2',{id:'h-backup',text:'Sao lưu'}),
       h('p',{class:'hint',text:'Dữ liệu lưu trong trình duyệt này và sẽ mất nếu bạn xóa dữ liệu trình duyệt. Đăng nhập Google để tự đồng bộ giữa các thiết bị. Bản sao lưu dưới đây là phòng khi cần và không gồm bảng thực phẩm (bảng thực phẩm xuất riêng bằng Excel).'}),
@@ -1771,7 +1783,7 @@ function go(t){
   tab=t;
   render();
   window.scrollTo(0,0);
-  try{ const want='#'+HASH[t]; if(location.hash!==want) location.hash=want; }catch(e){}
+  if(!READONLY){ try{ const want='#'+HASH[t]; if(location.hash!==want) location.hash=want; }catch(e){} }
 }
 function tabFromHash(){
   const x=location.hash.replace(/^#/,'');
@@ -1779,7 +1791,7 @@ function tabFromHash(){
   return 'today';
 }
 tabBtns.forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.tab==='today') viewKey=null; go(b.dataset.tab); }));
-window.addEventListener('hashchange',()=>{ const t=tabFromHash(); if(t!==tab){ tab=t; render(); window.scrollTo(0,0); } });
+window.addEventListener('hashchange',()=>{ if(READONLY) return; const t=tabFromHash(); if(t!==tab){ tab=t; render(); window.scrollTo(0,0); } });
 
 /* ---------- Cloud sync (Firestore) ---------- */
 // Documents: cfg/main, days/<date>, weights/<date>, foods/f00... Each device writes only the documents it changed.
@@ -2038,9 +2050,12 @@ function loadFB(){
         m=Object.assign({},parts[0],parts[1],parts[2]);
       }
       const app=m.initializeApp(FIREBASE_CONFIG);
-      FB.auth=m.getAuth(app);
-      try{ FB.fs=m.initializeFirestore(app,{localCache:m.persistentLocalCache({tabManager:m.persistentMultipleTabManager()})}); }
-      catch(e){ FB.fs=m.getFirestore(app); }
+      if(READONLY){ FB.fs=m.getFirestore(app); }
+      else{
+        FB.auth=m.getAuth(app);
+        try{ FB.fs=m.initializeFirestore(app,{localCache:m.persistentLocalCache({tabManager:m.persistentMultipleTabManager()})}); }
+        catch(e){ FB.fs=m.getFirestore(app); }
+      }
       FB.mods=m;
       return m;
     }catch(e){ FB.loading=null; throw e; }
@@ -2064,6 +2079,7 @@ function stopCloud(){
   clearTimeout(SYNC.timer); clearTimeout(SYNC.retry); clearTimeout(SYNC.offT);
   SYNC.db=null; SYNC.ready=false; SYNC.writing=false;
   SYNC.last=new Map(); SYNC.first={cfg:false,days:false,weights:false,foods:false};
+  SHARE.cfg=null; SHARE.loaded=false; SHARE.last=''; SHARE.msg='';
 }
 function onCloudError(e){
   setSyncState((e&&e.code==='permission-denied')?'denied':'error');
@@ -2086,10 +2102,20 @@ function startCloud(user){
     m.onSnapshot(col('weights'),opt,onWeights,err),
     m.onSnapshot(col('foods'),opt,onFoods,err)
   ];
+  SYNC.unsubs.push(m.onSnapshot(ref('cfg/share'),opt,onShareCfg,err));
 }
-async function wipeCloud(uid){
+async function wipeCloud(uid,withShare){
   const m=FB.mods,fs=FB.fs;
   const refs=[m.doc(fs,'users',uid,'cfg','main')];
+  if(withShare){
+    const sref=m.doc(fs,'users',uid,'cfg','share');
+    const ss=await m.getDocFromServer(sref);
+    if(ss.exists()){
+      const tk=ss.data()&&ss.data().token;
+      if(typeof tk==='string'&&tk) refs.push(m.doc(fs,'shares',tk));
+      refs.push(sref);
+    }
+  }
   for(const c of ['days','weights','foods']){
     const s=await m.getDocsFromServer(m.collection(fs,'users',uid,c));
     s.docs.forEach(d=>refs.push(d.ref));
@@ -2205,7 +2231,7 @@ async function deleteCloud(){
   authNote('Đang xóa dữ liệu trên đám mây…');
   stopCloud();
   try{
-    await wipeCloud(user.uid);
+    await wipeCloud(user.uid,true);
     setLink(null);
     authNote('Đã xóa dữ liệu của bạn trên đám mây. Dữ liệu trên máy này vẫn còn. Bạn đã được đăng xuất.');
     await FB.mods.signOut(FB.auth);
@@ -2259,6 +2285,157 @@ function accountSection(){
   return h('section',{class:'group','aria-labelledby':'h-acc'},kids);
 }
 
+/* ---------- Sharing a read-only link ---------- */
+const SHARE={cfg:null,loaded:false,last:'',msg:'',busy:false};
+function shareState(){
+  return JSON.parse(JSON.stringify({v:2,start:S.start,target:S.target,targetFrom:S.targetFrom,tasks:S.tasks,days:S.days,weights:S.weights||{},calGoal:S.calGoal!==false,prevTarget:S.prevTarget||null}));
+}
+function randomToken(){
+  const c='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const a=new Uint8Array(24);
+  if(window.crypto&&crypto.getRandomValues) crypto.getRandomValues(a); else for(let i=0;i<a.length;i++) a[i]=Math.floor(Math.random()*256);
+  return Array.from(a,x=>c[x%62]).join('');
+}
+const shareLink=()=>location.origin+location.pathname+'#xem='+SHARE.cfg.token;
+function onShareCfg(snap){
+  const ex=snap.exists();
+  if(snap.metadata&&snap.metadata.fromCache&&!ex) return;
+  const d=ex?snap.data():null;
+  const next=(d&&typeof d.token==='string'&&d.token)?{token:d.token,name:typeof d.name==='string'?d.name:''}:null;
+  const changed=canon(next)!==canon(SHARE.cfg)||!SHARE.loaded;
+  SHARE.cfg=next; SHARE.loaded=true;
+  if(!next) SHARE.last='';
+  if(changed&&tab==='edit') scheduleRender();
+}
+async function pushShare(force){
+  const c=SHARE.cfg;
+  if(!c||!c.token||!FB.user||!SYNC.ready||!SYNC.db||SHARE.busy) return;
+  const state=shareState(),j=canon(state)+'|'+(c.name||'');
+  if(!force&&j===SHARE.last) return;
+  const m=FB.mods;
+  try{
+    await m.setDoc(m.doc(FB.fs,'shares',c.token),{owner:FB.user.uid,name:c.name||'',updated:Date.now(),state});
+    SHARE.last=j;
+    if(SHARE.msg){ SHARE.msg=''; if(tab==='edit') scheduleRender(); }
+  }catch(e){
+    SHARE.msg='Chưa cập nhật được bản chia sẻ'+(e&&e.code?' ('+e.code+')':'')+'.';
+    if(tab==='edit') scheduleRender();
+  }
+}
+setInterval(()=>pushShare(false),4000);
+async function createShare(name){
+  if(!FB.user||SHARE.busy) return;
+  if(!SYNC.ready){ SHARE.msg='Hãy đợi app đồng bộ xong rồi thử lại.'; scheduleRender(); return; }
+  const m=FB.mods,uid=FB.user.uid,token=randomToken();
+  SHARE.busy=true; SHARE.msg='';
+  try{
+    const state=shareState();
+    await m.setDoc(m.doc(FB.fs,'shares',token),{owner:uid,name,updated:Date.now(),state});
+    await m.setDoc(m.doc(FB.fs,'users',uid,'cfg','share'),{token,name});
+    SHARE.cfg={token,name}; SHARE.last=canon(state)+'|'+name;
+  }catch(e){
+    try{ await m.deleteDoc(m.doc(FB.fs,'shares',token)); }catch(x){}
+    SHARE.cfg=null;
+    SHARE.msg='Không tạo được liên kết'+(e&&e.code?' ('+e.code+')':'')+'. Hãy kiểm tra quy tắc bảo mật Firestore đã có phần "shares".';
+  }
+  SHARE.busy=false; scheduleRender();
+}
+async function saveShareName(name){
+  if(!SHARE.cfg||!FB.user) return;
+  const m=FB.mods;
+  try{
+    await m.setDoc(m.doc(FB.fs,'users',FB.user.uid,'cfg','share'),{token:SHARE.cfg.token,name});
+    SHARE.cfg=Object.assign({},SHARE.cfg,{name});
+    SHARE.msg='Đã lưu tên.';
+    await pushShare(true);
+  }catch(e){ SHARE.msg='Chưa lưu được tên.'; }
+  scheduleRender();
+}
+async function revokeShare(){
+  if(!SHARE.cfg||!FB.user) return;
+  const m=FB.mods,tk=SHARE.cfg.token;
+  SHARE.busy=true;
+  try{
+    await m.deleteDoc(m.doc(FB.fs,'shares',tk));
+    await m.deleteDoc(m.doc(FB.fs,'users',FB.user.uid,'cfg','share'));
+    SHARE.cfg=null; SHARE.last=''; SHARE.msg='Đã tắt chia sẻ. Liên kết cũ không còn dùng được.';
+  }catch(e){ SHARE.msg='Chưa tắt được chia sẻ. Hãy thử lại.'; }
+  SHARE.busy=false; scheduleRender();
+}
+function shareSection(){
+  const kids=[h('h2',{id:'h-share',text:'Chia sẻ cho người khác xem'})];
+  if(!FB.user){
+    kids.push(h('p',{class:'hint',text:'Đăng nhập Google ở mục trên để tạo liên kết chia sẻ.'}));
+  }else if(!SHARE.loaded){
+    kids.push(h('p',{class:'hint',text:'Đang tải…'}));
+  }else{
+    const nameI=h('input',{class:'fld',id:'share-name',type:'text',maxlength:'30',autocomplete:'off',placeholder:'Tên hiển thị, không bắt buộc',value:SHARE.cfg?(SHARE.cfg.name||''):'','aria-label':'Tên hiển thị'});
+    if(!SHARE.cfg){
+      const mk=h('button',{class:'btn primary',type:'button',disabled:SHARE.busy},'Tạo liên kết chia sẻ');
+      mk.addEventListener('click',()=>createShare(nameI.value.trim()));
+      kids.push(
+        h('p',{class:'hint',text:'Tạo một liên kết để người khác xem toàn bộ challenge của bạn: việc hằng ngày, món ăn và calo, cân nặng, lịch 30 ngày. Họ không cần đăng nhập và chỉ xem được, không sửa được.'}),
+        nameI,h('div',{class:'btn-row'},mk),
+        h('p',{class:'hint',text:'Không chia sẻ: thông tin tính TDEE (tuổi, chiều cao) và bảng thực phẩm.'}));
+    }else{
+      const link=h('input',{class:'fld',id:'share-link',type:'text',readonly:true,value:shareLink(),'aria-label':'Liên kết chia sẻ'});
+      const cp=h('button',{class:'btn primary',type:'button'},'Sao chép liên kết');
+      const msg=h('p',{class:'msg',text:SHARE.msg});
+      cp.addEventListener('click',async()=>{
+        try{ await navigator.clipboard.writeText(link.value); msg.textContent='Đã sao chép liên kết.'; }
+        catch(e){ link.focus(); link.select(); msg.textContent='Hãy chọn hết liên kết ở trên rồi sao chép.'; }
+      });
+      const now=h('button',{class:'btn',type:'button'},'Cập nhật ngay');
+      now.addEventListener('click',async()=>{ await pushShare(true); msg.textContent=SHARE.msg||'Đã cập nhật bản chia sẻ.'; });
+      const sv=h('button',{class:'btn',type:'button'},'Lưu tên');
+      sv.addEventListener('click',()=>saveShareName(nameI.value.trim()));
+      const off=h('button',{class:'btn danger',type:'button'},'Tắt chia sẻ');
+      arm(off,'Tắt chia sẻ','Chắc chắn tắt? Liên kết sẽ chết',revokeShare);
+      kids.push(
+        h('p',{class:'hint',text:'Đang chia sẻ. Gửi liên kết này cho người bạn muốn cho xem.'}),
+        link,h('div',{class:'btn-row'},cp,now),
+        nameI,h('div',{class:'btn-row'},sv),
+        msg,
+        h('p',{class:'hint',text:'Ai có liên kết đều xem được. Nếu liên kết bị lộ, hãy tắt chia sẻ rồi tạo liên kết mới. Bản chia sẻ tự cập nhật khi bạn dùng app và đang đăng nhập.'}),
+        h('div',{class:'btn-row'},off));
+    }
+    if(!SHARE.cfg&&SHARE.msg) kids.push(h('p',{class:'msg',text:SHARE.msg}));
+  }
+  return h('section',{class:'group','aria-labelledby':'h-share'},kids);
+}
+
+/* ---------- Viewer (read-only link) ---------- */
+function viewerMsg(text){
+  mainEl.replaceChildren(h('div',{class:'note warn'},h('span',{text}),h('a',{href:location.pathname,text:'Mở app'})));
+}
+async function startViewer(){
+  const head=document.querySelector('.synchead'); if(head) head.hidden=true;
+  const eb=tabBtns.find(b=>b.dataset.tab==='edit'); if(eb) eb.hidden=true;
+  mainEl.replaceChildren(h('p',{class:'hint',text:'Đang tải…'}));
+  try{
+    const m=await loadFB();
+    const snap=await m.getDocFromServer(m.doc(FB.fs,'shares',VIEW_TOKEN));
+    if(!snap.exists()){ viewerMsg('Liên kết này không còn hiệu lực. Hãy xin người chia sẻ một liên kết mới.'); return; }
+    const d=snap.data()||{};
+    const st=normalize(d.state);
+    if(!st){ viewerMsg('Không đọc được dữ liệu chia sẻ.'); return; }
+    S=st; setFoods([]);
+    VIEW.name=typeof d.name==='string'?d.name.slice(0,30):'';
+    VIEW.updated=Number(d.updated)||0;
+    const dt=VIEW.updated?new Date(VIEW.updated):null;
+    const when=dt?(pad(dt.getDate())+'/'+pad(dt.getMonth()+1)+'/'+dt.getFullYear()+' '+pad(dt.getHours())+':'+pad(dt.getMinutes())):'';
+    const stale=dt&&(Date.now()-VIEW.updated>36*3600*1000);
+    const banner=h('div',{class:'note',style:'margin-bottom:12px'},
+      h('span',{text:'Chỉ xem'+(VIEW.name?' · của '+VIEW.name:'')+(when?'. Cập nhật lần cuối '+when+'.':'.')+(stale?' Dữ liệu có thể chưa mới.':'')}),
+      h('a',{href:location.pathname,text:'Dùng thử app'}));
+    mainEl.before(banner);
+    document.title='Challenge 30 ngày'+(VIEW.name?' · '+VIEW.name:'');
+    tab=tabFromHash(); render();
+  }catch(e){
+    viewerMsg((e&&e.code==='unavailable')?'Không có kết nối mạng. Hãy thử lại khi có mạng.':'Không tải được dữ liệu chia sẻ. Hãy kiểm tra mạng rồi tải lại trang.');
+  }
+}
+
 setSyncState('local');
 
 let lastToday=todayKey();
@@ -2267,8 +2444,7 @@ setInterval(tick,60000);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) tick(); });
 
 tab=tabFromHash();
-render();
-initAuth();
+if(READONLY) startViewer(); else{ render(); initAuth(); }
 })();
 </script>
 
