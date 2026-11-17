@@ -1,4 +1,4 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2145E6"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Challenge 30"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Challenge 30 ngày</title>
 <meta name="robots" content="noindex">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1805,7 +1805,7 @@ const SYNC_TXT={
   error:'Chưa lưu lên máy chủ được. Dữ liệu vẫn nằm trên máy này.',
   full:'Đã hết hạn mức đồng bộ hôm nay. Dữ liệu vẫn nằm trên máy này.',
   denied:'Quy tắc bảo mật của Firebase chưa cho phép lưu. Dữ liệu vẫn nằm trên máy này.',
-  nosdk:'Chưa tải được dịch vụ đăng nhập. Kiểm tra mạng rồi tải lại trang.',
+  nosdk:'Chưa tải được dịch vụ đồng bộ (có thể đang mất mạng). Dữ liệu vẫn lưu trên máy này.',
   choose:'Đang chờ bạn chọn cách đồng bộ…'
 };
 SYNC.ok=()=>SYNC.state==='ok'||SYNC.state==='saving';
@@ -2240,20 +2240,28 @@ async function deleteCloud(){
     startCloud(user);
   }
 }
-async function initAuth(){
+let authAttached=false;
+async function attachAuth(){
+  if(authAttached) return;
+  try{
+    const m=await loadFB();
+    if(authAttached) return;
+    authAttached=true;
+    m.onAuthStateChanged(FB.auth,onUser);
+  }catch(e){ setSyncState('nosdk'); }
+}
+function initAuth(){
   const b=document.getElementById('sync-b');
   if(b) b.addEventListener('click',signIn);
   paintAuthUI();
   window.addEventListener('offline',()=>{ if(SYNC.db) setSyncState('offline'); });
   window.addEventListener('online',()=>{
+    if(!authAttached){ attachAuth(); return; }
     if(!FB.user) return;
     if(!SYNC.db){ beginForUser(FB.user); return; }
     if(SYNC.ready){ setSyncState('saving'); flush(); }
   });
-  try{
-    const m=await loadFB();
-    m.onAuthStateChanged(FB.auth,onUser);
-  }catch(e){ setSyncState('nosdk'); }
+  attachAuth();
 }
 
 function accountSection(){
@@ -2448,4 +2456,5 @@ if(READONLY) startViewer(); else{ render(); initAuth(); }
 })();
 </script>
 
+<script>if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")) window.addEventListener("load",function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });</script>
 </body></html>
