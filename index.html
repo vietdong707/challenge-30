@@ -18,7 +18,7 @@
   --on-accent:#FFFFFF;
   --warn:#B8420F;
   --warn-soft:#FBE3D6;
-  --m1:#FFF3D1;--m1b:#F0DDA0;--m2:#DDF3E7;--m2b:#B6E1CB;--m3:#E8E4FB;--m3b:#CDC6F1;
+  --m1:#FFF8E6;--m1b:#F4E9C2;--m2:#EBF7F1;--m2b:#CFEBDD;--m3:#F1EFFC;--m3b:#DFDAF5;
   --c1:#2145E6;--c1s:#D9E2FF;
   --c2:#0B7F57;--c2s:#D2F1E3;
   --c3:#B8540A;--c3s:#FBE2CB;
@@ -327,7 +327,9 @@ textarea.fld{padding:10px 12px;min-height:6.5rem;resize:vertical;font-size:var(-
 .fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 8px}
 .fgrid label{display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);font-weight:600;color:var(--ink-2);min-width:0}
 .fgrid .full{grid-column:1 / -1}
-.isave{align-self:flex-start}
+.isave{align-self:stretch}
+.calsum>.btn{margin-top:10px;width:100%}
+.empty .btn,.card .callout .btn,.fmorerow .btn,.mapbox>.btn{align-self:stretch;width:100%}
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{transition:none!important;animation:none!important}
 }
@@ -1488,7 +1490,7 @@ function foodsSection(){
         h('label',{for:'fe-unit'},'Đơn vị',unitI),
         h('label',{class:'full',for:'fe-kcal'},'Calo (kcal) cho khối lượng chuẩn',kcalI)),
       emsg,
-      h('div',{class:'btn-row'},saveB,cancelB,delB));
+      h('div',{class:'btn-row two'},saveB,cancelB,delB));
     editBox.hidden=false;
     if(editBox.scrollIntoView) try{ editBox.scrollIntoView({block:'nearest'}); }catch(e){}
     nameI.focus();
@@ -1568,6 +1570,16 @@ function foodsSection(){
     copyRows(foodRows(),expMsg,copyOut);
   });
 
+  const defMsg=h('p',{class:'msg'});
+  const defBtn=h('button',{class:'btn add',type:'button'},'Nạp bảng mặc định');
+  defBtn.addEventListener('click',()=>{
+    const have=new Set(FOODS.map(f=>norm(f.n)));
+    const extra=DEFAULT_FOODS.filter(a=>!have.has(norm(a[0]))).map(a=>({n:a[0],b:a[1],u:a[2],k:a[3]}));
+    if(!extra.length){ defMsg.textContent='Bảng đã có đủ các món mặc định.'; return; }
+    if(FOODS.length+extra.length>MAX_FOODS){ defMsg.textContent='Bảng đã gần đầy, không nạp thêm được.'; return; }
+    setFoods(FOODS.concat(extra)); saveFoods(); closeEditor(); paintList(); paintCount();
+    defMsg.textContent='Đã thêm '+extra.length+' món mới. Món trùng tên giữ nguyên số liệu của bạn. Bảng hiện có '+FOODS.length+' món.';
+  });
   const clearBtn=h('button',{class:'btn danger',type:'button'},'Xóa bảng thực phẩm');
   arm(clearBtn,'Xóa bảng thực phẩm','Chắc chắn xóa bảng?',()=>{ setFoods([]); saveFoods(); closeEditor(); paintList(); paintCount(); msg.textContent='Đã xóa bảng thực phẩm.'; });
 
@@ -1579,15 +1591,17 @@ function foodsSection(){
       editBox,
       fscroll,
       fcount),
+    h('div',{class:'btn-row full'},defBtn),
+    defMsg,
     h('p',{class:'eyebrow',text:'Nhập từ Google Sheets hoặc Excel'}),
     h('p',{class:'hint',text:'App không nối trực tiếp với Google Sheets được. Khi bảng thay đổi, bạn sao chép các ô rồi dán vào đây. Chọn "Gộp thêm" để cập nhật món trùng tên và thêm món mới mà không mất món cũ.'}),
     ta,
-    h('div',{class:'btn-row'},readBtn),
+    h('div',{class:'btn-row full'},readBtn),
     mapBox,msg,
     h('p',{class:'eyebrow',text:'Xuất bảng thực phẩm'}),
     h('div',{class:'btn-row two'},expBtn,copyBtn),
     expMsg,copyOut,
-    h('div',{class:'btn-row'},clearBtn));
+    h('div',{class:'btn-row full'},clearBtn));
 }
 
 function tdeeSection(onApply){
@@ -1679,7 +1693,7 @@ function tdeeSection(onApply){
       h('label',{class:'full',for:'td-act'},'Mức vận động',actS),
       h('label',{class:'full',for:'td-def'},'Giảm so với TDEE (kcal mỗi ngày)',dI)),
     need,box,
-    h('div',{class:'btn-row'},applyBtn),
+    h('div',{class:'btn-row full'},applyBtn),
     msg,
     note);
 }
@@ -2008,7 +2022,7 @@ function onFoods(snap){
   let changed=false;
   const docs=localDocs();
   const arr=snap.docs.slice().sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
-  if(!dirtyPrefix('foods/',docs)&&(SYNC.ready||arr.length)){
+  if(!dirtyPrefix('foods/',docs)&&(SYNC.ready||arr.length)&&!(SEEDED&&!arr.length)){
     const items=[];
     arr.forEach(d=>{ const x=d.data(); if(x&&Array.isArray(x.items)) x.items.forEach(i=>items.push(i)); });
     const before=canon(FOODS);
