@@ -1,4 +1,4 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2145E6"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Challenge 30"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#F1F4F9"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Challenge 30"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Challenge 30 ngày</title>
 <meta name="robots" content="noindex">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -18,6 +18,10 @@
   --on-accent:#FFFFFF;
   --warn:#B8420F;
   --warn-soft:#FBE3D6;
+  --m1:#FFF3D1;--m1b:#F0DDA0;--m2:#DDF3E7;--m2b:#B6E1CB;--m3:#E8E4FB;--m3b:#CDC6F1;
+  --c1:#2145E6;--c1s:#D9E2FF;
+  --c2:#0B7F57;--c2s:#D2F1E3;
+  --c3:#B8540A;--c3s:#FBE2CB;
   --font-display:'Barlow Condensed','Arial Narrow','Roboto Condensed',system-ui,sans-serif;
   --font-body:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
   --fs-xs:.75rem;
@@ -38,6 +42,10 @@
     --on-accent:#0A1230;
     --warn:#FF9E72;
     --warn-soft:#3A2218;
+    --m1:#2D2612;--m1b:#4A3E1C;--m2:#12302A;--m2b:#1F4A3E;--m3:#242040;--m3b:#3A3466;
+    --c1:#7691FF;--c1s:#1C2A5A;
+    --c2:#4FD0A0;--c2s:#133A2C;
+    --c3:#FFA45C;--c3s:#3D2612;
     color-scheme:dark;
   }
 }
@@ -53,6 +61,10 @@
   --on-accent:#0A1230;
   --warn:#FF9E72;
   --warn-soft:#3A2218;
+  --m1:#2D2612;--m1b:#4A3E1C;--m2:#12302A;--m2b:#1F4A3E;--m3:#242040;--m3b:#3A3466;
+  --c1:#7691FF;--c1s:#1C2A5A;
+  --c2:#4FD0A0;--c2s:#133A2C;
+  --c3:#FFA45C;--c3s:#3D2612;
   color-scheme:dark;
 }
 
@@ -143,8 +155,13 @@ h2{font-family:var(--font-display);font-weight:700;font-size:var(--fs-lg);text-t
 .badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);font-size:var(--fs-xs);font-weight:600;white-space:nowrap}
 .badge.ok{background:var(--accent-soft);color:var(--accent)}
 .badge.warn{background:var(--warn-soft);color:var(--warn)}
-.mealblock{display:flex;flex-direction:column;gap:10px;padding:14px 0;border-bottom:1px solid var(--line)}
-.mealblock:first-child{padding-top:0}
+.mealblock{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;border:1.5px solid var(--line);background:var(--surface)}
+.calsum{gap:0}
+.mealblock.m-s{background:var(--m1);border-color:var(--m1b)}
+.mealblock.m-t{background:var(--m2);border-color:var(--m2b)}
+.mealblock.m-e{background:var(--m3);border-color:var(--m3b)}
+.mealblock .item{background:var(--surface)}
+.mealblock .iname,.mealblock .iqty,.mealblock .ikcal{background:var(--bg)}
 .mhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .mhead h3{margin:0;font-size:var(--fs-md);font-weight:600}
 .mk{font-family:var(--font-display);font-weight:700;font-size:1.5rem;line-height:1;font-variant-numeric:tabular-nums}
@@ -164,7 +181,7 @@ h2{font-family:var(--font-display);font-weight:700;font-size:var(--fs-lg);text-t
 .skip{display:flex;align-items:center;gap:8px;min-height:44px;font-size:var(--fs-sm);color:var(--ink-2)}
 .skip input{width:22px;height:22px;accent-color:var(--accent)}
 input:disabled,select:disabled{opacity:.6}
-.total{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:14px}
+.total{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .total .lbl{font-weight:600}
 .total b{font-family:var(--font-display);font-weight:700;font-size:2.25rem;line-height:1;font-variant-numeric:tabular-nums}
 .total .of2{color:var(--ink-2);font-size:var(--fs-sm);font-variant-numeric:tabular-nums}
@@ -241,6 +258,13 @@ input:disabled,select:disabled{opacity:.6}
 .fld-row span{color:var(--ink-2)}
 textarea.fld{padding:10px 12px;min-height:6.5rem;resize:vertical;font-size:var(--fs-sm);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 .btn-row{display:flex;flex-wrap:wrap;gap:8px}
+.btn-row.full .btn{flex:1 1 100%}
+.subgroup{display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--line)}
+.subgroup h3{margin:0;font-family:var(--font-display);font-weight:700;font-size:var(--fs-md);text-transform:uppercase;letter-spacing:.06em}
+.btn-row.two{flex-wrap:nowrap}
+.btn-row.two .btn{flex:1 1 0;min-width:0;padding:0 8px;line-height:1.25;text-align:center}
+.btn.green{background:var(--c2);border-color:var(--c2);color:var(--on-accent)}
+.btn.add{background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent)}
 .msg{margin:0;font-size:var(--fs-sm);color:var(--ink-2);min-height:1.5em}
 .group{display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid var(--line)}
 .mapbox{display:flex;flex-direction:column;gap:12px}
@@ -256,11 +280,14 @@ textarea.fld{padding:10px 12px;min-height:6.5rem;resize:vertical;font-size:var(-
 @media (max-width:420px){ .mapgrid{grid-template-columns:minmax(0,1fr)} }
 
 /* Tab bar */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding:8px max(16px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--bg);border-top:1px solid var(--line);padding:8px max(16px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .tabs .inner{display:flex;gap:6px;width:100%;max-width:520px;margin:0 auto}
 .tabs button{flex:1;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:0;border-radius:12px;background:transparent;color:var(--ink-2);font-size:var(--fs-xs);font-weight:600}
-.tabs button[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
-.tabs svg{width:22px;height:22px}
+.tabs button[data-tab="today"]{--tc:var(--c1);--ts:var(--c1s)}
+.tabs button[data-tab="cal"]{--tc:var(--c2);--ts:var(--c2s)}
+.tabs button[data-tab="edit"]{--tc:var(--c3);--ts:var(--c3s)}
+.tabs button[aria-current="page"]{color:var(--tc);background:var(--ts)}
+.tabs svg{width:22px;height:22px;color:var(--tc)}
 
 .synchead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
 .synchead .sync{margin-bottom:0;min-width:0;flex:1 1 auto}
@@ -349,7 +376,17 @@ function applyTheme(v){
   if(v==='light'||v==='dark') r.setAttribute('data-theme',v);
   else if(hostTheme) r.setAttribute('data-theme',hostTheme);
   else r.removeAttribute('data-theme');
+  syncThemeColor();
 }
+function syncThemeColor(){
+  try{
+    const m=document.querySelector('meta[name="theme-color"]');
+    if(!m) return;
+    const c=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+    if(c) m.setAttribute('content',c);
+  }catch(e){}
+}
+try{ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',syncThemeColor); }catch(e){}
 function setThemePref(v){
   try{ if(v==='system') localStorage.removeItem(TKEY); else localStorage.setItem(TKEY,v); }catch(e){}
   applyTheme(v);
@@ -391,6 +428,8 @@ const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').re
 /* ---------- Food table ---------- */
 let FOODS=[];
 let FOOD_MAP=new Map();
+let SEEDED=false; // FOODS still equals the built-in table, never edited on this device
+const DEFAULT_FOODS=[["Cơm trắng",100,"g",130],["Bánh hỏi",100,"g",160],["Bánh mì lát",100,"g",280],["khoai lang luộc",100,"g",90],["khoai lang nướng",100,"g",110],["Xôi trắng",100,"g",300],["Sữa đặc",100,"g",325],["Trứng gà ốp la",1,"quả",130],["Trứng vịt ốp la",1,"quả",160],["trứng luộc",1,"quả",74],["trứng ngâm tương",1,"quả",80],["Trứng ốp la",100,"g",155],["Trứng chiên",100,"g",200],["Trứng chiên thịt bằm",100,"g",220],["Cá sốt cà",100,"g",220],["Cá kho",100,"g",200],["Cá thu",100,"g",305],["Cá thu sốt cà",100,"g",240],["Cá kho bắp chuối",100,"g",220],["Cá kho dưa cải",100,"g",220],["Cá kho măng",100,"g",220],["Cá kho thịt",100,"g",250],["Canh rau",100,"g",60],["Canh củ",100,"g",90],["Canh xương",100,"g",90],["canh chua cá",100,"g",90],["Bánh Bon",1,"cái",70],["Bánh oreo",1,"cái",55],["Bánh chưng",100,"g",180],["Bánh chuối chiên",100,"g",425],["Bánh bột lọc",1,"cái",54],["Bánh hỏi không",100,"g",96],["Bánh hỏi trộn hành hẹ",100,"g",120],["Bánh bao",1,"cái",350],["Tôm",100,"g",100],["Tôm chiên bột",100,"g",300],["Tôm rim",100,"g",230],["bơ",100,"g",160],["Đậu phộng rang",100,"g",650],["Chả lụa",100,"g",230],["chả cá",100,"g",200],["chả cá xào",100,"g",180],["Heo quay",100,"g",320],["Heo quay xào cải chua",100,"g",330],["Thịt xào măng",100,"g",250],["Sườn non kho",100,"g",330],["thịt luộc",100,"g",300],["Thịt kho",100,"g",350],["thịt nạc kho",100,"g",290],["Thịt kho đậu hũ",100,"g",320],["thịt kho trứng cút",100,"g",320],["thịt kho thơm",100,"g",280],["thịt nạc kho trứng cút",100,"g",290],["Đậu hũ chiên",100,"g",270],["Đậu hũ trắng",100,"g",80],["đậu hũ cà chua thịt xay",100,"g",180],["Bê hấp",100,"g",200],["Bê xào hành",100,"g",220],["Cà phê sữa",1,"ly",160],["Cà phê muối",1,"ly",180],["cà phê đá",1,"ly",80],["cà phê gói",1,"gói",75],["đá me",1,"ly",150],["Kem",1,"cái",200],["Bia",1,"chai",144],["Ức gà luộc",100,"g",165],["Ức gà kho",100,"g",190],["Ức gà áp chảo",100,"g",190],["Thịt gà luộc",100,"g",240],["Thịt gà kho",100,"g",270],["tàu hũ nóng",1,"ly",250],["chuối sứ",100,"g",800],["chuối lùn",100,"g",900],["mực xào",100,"g",180],["mực tẩm bột chiên",100,"g",200],["cơm gà xối mỡ",1,"phần",750],["xôi gà chiên",1,"phần",550],["bún thịt xào",1,"phần",500],["trà sữa",1,"ly",400],["vịt luộc",100,"g",270],["vịt kho măng",100,"g",250],["rong biển gói",1,"gói",30],["bún",100,"g",120],["bánh cuốn",1,"phần",500],["mì quảng",1,"phần",550],["rau lang xào tỏi",100,"g",100],["Miến",100,"g",120],["Măng xào ba chỉ",100,"g",220],["thiên lý xào thịt bò",100,"g",200],["Bò xào hành",100,"g",240],["lòng luộc",100,"g",240],["bánh mì chả cá ốp la",1,"cái",650],["Mực hấp",200,"g",220]];
 function cleanFood(f){
   if(!f||typeof f.n!=='string') return null;
   const b=Number(f.b),k=Number(f.k);
@@ -403,15 +442,23 @@ function setFoods(list){
   FOODS=Array.from(m.values()).slice(0,MAX_FOODS);
   FOOD_MAP=new Map(FOODS.map(f=>[norm(f.n),f]));
 }
+function seedFoods(){
+  if(typeof READONLY!=='undefined'&&READONLY) return;
+  setFoods(DEFAULT_FOODS.map(a=>({n:a[0],b:a[1],u:a[2],k:a[3]})));
+  SEEDED=true;
+}
 function loadFoods(){
-  try{ const raw=localStorage.getItem(FKEY); if(raw){ const a=JSON.parse(raw); if(Array.isArray(a)) setFoods(a); } }catch(e){}
+  let raw=null;
+  try{ raw=localStorage.getItem(FKEY); }catch(e){}
+  if(raw===null){ seedFoods(); return; }
+  try{ const a=JSON.parse(raw); if(Array.isArray(a)) setFoods(a); }catch(e){}
 }
 let syncHook=null;
 function localSaveFoods(){
   if(READONLY) return;
   try{ localStorage.setItem(FKEY,JSON.stringify(FOODS)); }catch(e){ saveOK=false; }
 }
-function saveFoods(){ localSaveFoods(); if(syncHook) syncHook(); }
+function saveFoods(){ SEEDED=false; localSaveFoods(); if(syncHook) syncHook(); }
 const lookup=name=>name?FOOD_MAP.get(norm(name)):undefined;
 
 /* ---------- State ---------- */
@@ -506,6 +553,7 @@ function save(){ localSave(); if(syncHook) syncHook(); }
 let tab='today';
 let viewKey=null; // null means follow today
 let calSel=null; // date picked in the calendar
+let calWOpen=false;
 
 /* ---------- Rules ---------- */
 function calorieReq(key){
@@ -773,7 +821,7 @@ function viewToday(){
   if(!st0.tasks.length){
     list.append(h('div',{class:'empty'},
       h('span',{text:'Chưa có việc nào cho ngày này.'}),
-      h('button',{class:'btn small',type:'button',onclick:()=>go('edit')},'Thêm việc')));
+      h('button',{class:'btn small',type:'button',onclick:()=>{OPEN.list=true;go('edit');}},'Thêm việc')));
   }
   const tasksSec=h('section',{class:'section','aria-labelledby':'h-tasks'},
     h('div',{class:'sec-head'},h('h2',{id:'h-tasks',text:'Việc trong ngày'}),h('span',{class:'sec-r'},done,' ',count)),
@@ -787,7 +835,7 @@ function viewToday(){
   const fill=h('i');
   const meter=h('div',{class:'meter',role:'presentation'},fill);
   const calMsg=h('p',{class:'calmsg'});
-  const setBtn=h('button',{class:'btn small',type:'button',onclick:()=>{go('edit');focusSoon('cal-target');}},'Đặt mục tiêu calo');
+  const setBtn=h('button',{class:'btn small',type:'button',onclick:()=>{OPEN.list=true;go('edit');focusSoon('cal-target');}},'Đặt mục tiêu calo');
   if(READONLY) setBtn.style.display='none';
   const noFoods=(FOODS.length===0&&!READONLY)
     ?h('div',{class:'callout'},
@@ -804,7 +852,7 @@ function viewToday(){
     const kcalBox=h('div',{class:'ik'});
     const sub=h('p',{class:'isub'});
     const saveBtn=h('button',{class:'btn small isave',type:'button',hidden:true},'Lưu vào bảng thực phẩm');
-    let kv=null,mode='';
+    let kv=null,mode='',autoQ=false;
     const del=h('button',{class:'iconbtn',type:'button','aria-label':'Xóa món',disabled:!editable},ico(P.x));
     if(READONLY) del.style.display='none';
     const el=h('div',{class:'item'},nameI,h('div',{class:'irow'},h('div',{class:'iq'},qtyI,unitS),kcalBox,del),sub,saveBtn);
@@ -844,12 +892,20 @@ function viewToday(){
       if(f){ item.m=false; item.k=item.q!==null?Math.round(f.k*item.q/f.b):0; }
       else item.m=true;
     }
-    nameI.addEventListener('input',()=>{ item.n=nameI.value; recalc(); save(); paint(); refresh(); });
+    nameI.addEventListener('input',()=>{
+      item.n=nameI.value;
+      const f=lookup(item.n);
+      if(f){
+        if(item.q===null||autoQ){ item.q=f.b; qtyI.value=String(f.b); autoQ=true; }
+      }else if(autoQ){ item.q=null; qtyI.value=''; autoQ=false; }
+      recalc(); save(); paint(); refresh();
+    });
     qtyI.addEventListener('input',()=>{
       const v=qtyI.value.replace(/[^\d.,]/g,'');
       if(v!==qtyI.value) qtyI.value=v;
       const n=v===''?null:Number(v.replace(',','.'));
       item.q=(n===null||!isFinite(n))?null:n;
+      autoQ=false;
       recalc(); save(); paint(); refresh();
     });
     del.addEventListener('click',()=>{
@@ -877,7 +933,7 @@ function viewToday(){
     const mk=h('span',{class:'mk'});
     const itemsBox=h('div',{class:'items'});
     for(const it of ((md0&&md0.items)||[])) itemsBox.append(buildItemRow(m,it).el);
-    const addBtn=h('button',{class:'btn small',type:'button',disabled:!editable,onclick:()=>{
+    const addBtn=h('button',{class:'btn small add',type:'button',disabled:!editable,onclick:()=>{
       const md=ensureMeal(key,m.id);
       const it={id:newId(),n:'',q:null,k:0,m:true};
       md.items.push(it); save();
@@ -888,7 +944,7 @@ function viewToday(){
     skipCb.addEventListener('change',()=>{ const md=ensureMeal(key,m.id); md.skip=skipCb.checked; save(); refresh(); });
     const skipLbl=h('label',{class:'skip',for:'skip-'+m.id},skipCb,'Không ăn bữa này');
     const foot=h('div',{class:'mfoot'},addBtn,skipLbl);
-    const el=h('div',{class:'mealblock'},
+    const el=h('div',{class:'mealblock m-'+m.id},
       h('div',{class:'mhead'},h('h3',{text:m.name}),mk),
       itemsBox,foot);
     return {m,el,mk,itemsBox,addBtn,skipCb};
@@ -896,10 +952,10 @@ function viewToday(){
 
   const calSec=h('section',{class:'section','aria-labelledby':'h-cal'},
     h('div',{class:'sec-head'},h('h2',{id:'h-cal',text:'Calo trong ngày'}),calBadge),
-    h('div',{class:'card'},
-      mealBlocks.map(b=>b.el),
+    h('div',{class:'card calsum'},
       h('div',{class:'total'},h('span',{class:'lbl',text:'Tổng ngày'}),h('span',{},calTotal,calOf)),
       meter,calMsg,noFoods,setBtn),
+    mealBlocks.map(b=>b.el),
     dl);
 
   function refresh(){
@@ -1018,15 +1074,18 @@ function viewCal(){
   const dateInp=h('input',{class:'fld',id:'cal-date',type:'date',value:calSel});
   const info=h('p',{class:'dp-title'});
   const chip=h('span',{class:'badge'});
+  const wDay=h('p',{class:'dp-title hint'});
   const wInp=h('input',{class:'fld wf',id:'cal-weight',type:'text',inputmode:'decimal',autocomplete:'off',placeholder:'Ví dụ 72,5',maxlength:'6'});
   const wMsg=h('p',{class:'msg'});
-  const openBtn=h('button',{class:'btn',type:'button',onclick:()=>{ viewKey=calSel; go('today'); }},'Mở ngày này');
+  const openBtn=h('button',{class:'btn primary',type:'button',onclick:()=>{ viewKey=calSel; go('today'); }},'Mở ngày này');
   if(READONLY){ wInp.disabled=true; wInp.placeholder='—'; }
   const wBox=h('div',{class:'wbox'});
+  const wToggle=h('button',{class:'btn green',type:'button','aria-controls':'wpanel'});
 
   function paintDay(){
     const idx=diffDays(S.start,calSel)+1,inR=idx>=1&&idx<=DAYS;
     info.textContent=(inR?'Ngày '+idx+'/30 · ':'')+weekday(calSel)+', '+fmtDMY(calSel);
+    wDay.textContent='Cho ngày '+fmtDMY(calSel);
     if(inR){
       const st=status(calSel);
       chip.textContent=calSel>today?'Chưa tới':st.complete?'Hoàn thành':st.got>0?st.got+'/'+st.needed+' việc':calSel<today?'Chưa làm':'Chưa bắt đầu';
@@ -1071,7 +1130,13 @@ function viewCal(){
       wBox.append(h('p',{class:'hint',text:'Nhập thêm một lần cân nữa để xem biểu đồ.'}));
     }
   }
-  function selectDate(k){ calSel=k; dateInp.value=k; paintDay(); }
+  function paintWToggle(){
+    wPanel.hidden=!calWOpen;
+    wToggle.textContent=calWOpen?'Ẩn cập nhật cân nặng':'Cập nhật cân nặng ngày này';
+    wToggle.setAttribute('aria-expanded',calWOpen?'true':'false');
+  }
+  wToggle.addEventListener('click',()=>{ calWOpen=!calWOpen; paintWToggle(); if(calWOpen) wInp.focus(); });
+  function selectDate(k){ calSel=k; calWOpen=false; dateInp.value=k; paintDay(); paintWToggle(); }
 
   dateInp.addEventListener('change',()=>{ if(isKey(dateInp.value)) selectDate(dateInp.value); else dateInp.value=calSel; });
   const okW=n=>isFinite(n)&&n>=20&&n<=300;
@@ -1091,9 +1156,12 @@ function viewCal(){
     h('div',{class:'dp-head'},h('h2',{id:'h-day',text:'Ngày đã chọn'}),chip),
     h('div',{class:'dp-row'},h('label',{class:'hint',for:'cal-date',text:'Ngày'}),dateInp),
     info,
+    h('div',{class:'btn-row full'},openBtn,wToggle));
+  const wPanel=h('section',{class:'card daypanel',id:'wpanel','aria-labelledby':'h-wupd'},
+    h('h2',{id:'h-wupd',text:'Cập nhật cân nặng'}),
+    wDay,
     h('div',{class:'dp-row'},h('label',{class:'hint',for:'cal-weight',text:'Cân nặng'}),wInp,h('span',{class:'unit',text:'kg'})),
-    wMsg,
-    h('div',{class:'btn-row'},openBtn));
+    wMsg);
 
   const v=h('div',{class:'view'},
     h('div',{class:'hero'},
@@ -1114,11 +1182,13 @@ function viewCal(){
       h('span',{},h('i',{class:'sw picked'}),'Đang chọn'),
       h('span',{},h('i',{class:'sw wd'}),'Đã nhập cân')),
     panel,
+    wPanel,
     h('section',{class:'section','aria-labelledby':'h-wtrend'},
       h('h2',{id:'h-wtrend',text:'Diễn biến cân nặng'}),
       wBox));
   paintDay();
   paintW();
+  paintWToggle();
   return v;
 }
 
@@ -1311,12 +1381,12 @@ function exportSection(){
   const copyOut=h('textarea',{class:'fld',readonly:true,hidden:true,'aria-label':'Dữ liệu để sao chép'});
   const expBtn=h('button',{class:'btn',type:'button'},'Xuất Excel');
   expBtn.addEventListener('click',()=>runExport(expBtn,msg,'challenge-30-ngay-'+todayKey()+'.xlsx',challengeSheets().sheets));
-  const copyBtn=h('button',{class:'btn',type:'button'},'Sao chép bảng theo ngày');
+  const copyBtn=h('button',{class:'btn',type:'button'},'Sao chép theo ngày');
   copyBtn.addEventListener('click',()=>copyRows(challengeSheets().daysRows,msg,copyOut));
   return h('section',{class:'group','aria-labelledby':'h-exp'},
     h('h2',{id:'h-exp',text:'Xuất dữ liệu challenge'}),
     h('p',{class:'hint',text:'File Excel gồm 4 sheet: Tổng quan, Theo ngày, Món ăn và Cân nặng.'}),
-    h('div',{class:'btn-row'},expBtn,copyBtn),
+    h('div',{class:'btn-row two'},expBtn,copyBtn),
     msg,copyOut);
 }
 
@@ -1515,7 +1585,7 @@ function foodsSection(){
     h('div',{class:'btn-row'},readBtn),
     mapBox,msg,
     h('p',{class:'eyebrow',text:'Xuất bảng thực phẩm'}),
-    h('div',{class:'btn-row'},expBtn,copyBtn),
+    h('div',{class:'btn-row two'},expBtn,copyBtn),
     expMsg,copyOut,
     h('div',{class:'btn-row'},clearBtn));
 }
@@ -1614,7 +1684,7 @@ function tdeeSection(onApply){
     note);
 }
 
-const OPEN={foods:false,tdee:false};
+const OPEN={list:false,foods:false,tdee:false,exp:false,acc:false,share:false,backup:false,theme:false};
 function collapsible(sec,key){
   const hd=sec.querySelector('h2');
   const body=h('div',{class:'cbody',id:'body-'+key});
@@ -1741,29 +1811,30 @@ function viewEdit(){
     h('section',{class:'section','aria-labelledby':'h-start'},
       h('h2',{id:'h-start',text:'Ngày bắt đầu'}),
       startInp,endText),
-    h('section',{class:'group','aria-labelledby':'h-list'},
-      h('h2',{id:'h-list',text:'Việc hằng ngày'}),
+    collapsible(h('section',{class:'group','aria-labelledby':'h-list'},
+      h('h2',{id:'h-list',text:'Challenge trong ngày'}),
       h('p',{class:'hint',text:'Việc mới chỉ tính từ hôm nay. Các ngày đã qua giữ nguyên kết quả.'}),
-      list,addForm,calPin),
-    calOn?h('section',{class:'group','aria-labelledby':'h-kcal'},
-      h('h2',{id:'h-kcal',text:'Mục tiêu calo'}),
-      h('label',{class:'hint',for:'cal-target',text:'Tối đa mỗi ngày'}),
-      h('div',{class:'fld-row'},tgt,h('span',{text:'kcal'})),
-      tgtHint):null,
+      list,addForm,
+      h('div',{class:'subgroup','aria-labelledby':'h-kcal'},
+        h('h3',{id:'h-kcal',text:'Mục tiêu calo'}),
+        calPin,
+        calOn?h('label',{class:'hint',for:'cal-target',text:'Tối đa mỗi ngày'}):null,
+        calOn?h('div',{class:'fld-row'},tgt,h('span',{text:'kcal'})):null,
+        calOn?tgtHint:null)),'list'),
     calOn?collapsible(foodsSection(),'foods'):null,
     calOn?collapsible(tdeeSection(n=>{ setTarget(n); tgt.value=String(S.target); tgtHintText(); }),'tdee'):null,
-    themeSection(),
-    exportSection(),
-    accountSection(),
-    shareSection(),
-    h('section',{class:'group','aria-labelledby':'h-backup'},
+    collapsible(exportSection(),'exp'),
+    collapsible(accountSection(),'acc'),
+    collapsible(shareSection(),'share'),
+    collapsible(h('section',{class:'group','aria-labelledby':'h-backup'},
       h('h2',{id:'h-backup',text:'Sao lưu'}),
       h('p',{class:'hint',text:'Dữ liệu lưu trong trình duyệt này và sẽ mất nếu bạn xóa dữ liệu trình duyệt. Đăng nhập Google để tự đồng bộ giữa các thiết bị. Bản sao lưu dưới đây là phòng khi cần và không gồm bảng thực phẩm (bảng thực phẩm xuất riêng bằng Excel).'}),
       ta,
-      h('div',{class:'btn-row'},copyBtn,restoreBtn),
-      msg),
+      h('div',{class:'btn-row two'},copyBtn,restoreBtn),
+      msg),'backup'),
+    collapsible(themeSection(),'theme'),
     h('section',{class:'group'},
-      h('div',{class:'btn-row'},resetBtn)));
+      h('div',{class:'btn-row full'},resetBtn)));
 }
 
 /* ---------- Shell ---------- */
@@ -1941,7 +2012,7 @@ function onFoods(snap){
     const items=[];
     arr.forEach(d=>{ const x=d.data(); if(x&&Array.isArray(x.items)) x.items.forEach(i=>items.push(i)); });
     const before=canon(FOODS);
-    setFoods(items);
+    setFoods(items); SEEDED=false;
     if(canon(FOODS)!==before){ localSaveFoods(); changed=true; }
     Array.from(SYNC.last.keys()).forEach(p=>{ if(p.indexOf('foods/')===0) SYNC.last.delete(p); });
     Array.from(SYNC.boot.keys()).forEach(p=>{ if(p.indexOf('foods/')===0) SYNC.boot.delete(p); });
@@ -2064,12 +2135,12 @@ function loadFB(){
 }
 
 function localHasData(){
-  return Object.keys(S.days).length>0||Object.keys(S.weights||{}).length>0||FOODS.length>0||S.target!==null||S.calGoal===false
+  return Object.keys(S.days).length>0||Object.keys(S.weights||{}).length>0||(FOODS.length>0&&!SEEDED)||S.target!==null||S.calGoal===false
     ||canon(S.tasks.map(t=>t.name))!==canon(DEFAULT_TASKS().map(t=>t.name));
 }
 function clearLocal(){
-  S=fresh(); setFoods([]); viewKey=null; calSel=null;
-  localSave(); localSaveFoods();
+  S=fresh(); seedFoods(); try{ localStorage.removeItem(FKEY); }catch(e){} viewKey=null; calSel=null;
+  localSave();
 }
 function bootNow(){ return new Map(Array.from(localDocs()).map(e=>[e[0],canon(e[1])])); }
 
@@ -2272,7 +2343,7 @@ function accountSection(){
     b.addEventListener('click',signIn);
     kids.push(
       h('p',{class:'hint',text:'Đăng nhập để lưu dữ liệu lên đám mây và dùng trên nhiều thiết bị. Nếu không đăng nhập, dữ liệu chỉ nằm trong trình duyệt này.'}),
-      h('div',{class:'btn-row'},b),
+      h('div',{class:'btn-row full'},b),
       h('p',{class:'hint',text:'Nếu mở link trong Zalo, Facebook hoặc Messenger, Google có thể chặn đăng nhập. Hãy mở bằng Chrome hoặc Safari.'}));
   }else{
     const out=h('button',{class:'btn',type:'button'},'Đăng xuất');
@@ -2283,11 +2354,11 @@ function accountSection(){
     arm(del,'Xóa dữ liệu của tôi trên đám mây','Chắc chắn xóa trên đám mây?',deleteCloud);
     kids.push(
       h('p',{class:'hint',text:'Đang đăng nhập: '+(u.email||u.displayName||'tài khoản Google')+'.'}),
-      h('div',{class:'btn-row'},out),
+      h('div',{class:'btn-row full'},out),
       h('p',{class:'hint',text:'Dùng máy chung hoặc máy của người khác? Bấm "Đăng xuất và xóa dữ liệu trên máy này". Dữ liệu trên đám mây vẫn còn, đăng nhập lại là lấy về được.'}),
-      h('div',{class:'btn-row'},wipe),
+      h('div',{class:'btn-row full'},wipe),
       h('p',{class:'hint',text:'Xóa dữ liệu trên đám mây sẽ xóa hẳn dữ liệu của tài khoản này ở mọi thiết bị đang đăng nhập. Dữ liệu trên máy này vẫn giữ lại.'}),
-      h('div',{class:'btn-row'},del));
+      h('div',{class:'btn-row full'},del));
   }
   kids.push(h('p',{class:'hint',text:'Dữ liệu đồng bộ gồm việc đã làm, bữa ăn, calo, cân nặng và bảng thực phẩm. Trong app, mỗi người chỉ đọc được dữ liệu của chính mình. Người quản lý dự án Firebase có quyền kỹ thuật xem cơ sở dữ liệu.'}));
   return h('section',{class:'group','aria-labelledby':'h-acc'},kids);
@@ -2383,7 +2454,7 @@ function shareSection(){
       mk.addEventListener('click',()=>createShare(nameI.value.trim()));
       kids.push(
         h('p',{class:'hint',text:'Tạo một liên kết để người khác xem toàn bộ challenge của bạn: việc hằng ngày, món ăn và calo, cân nặng, lịch 30 ngày. Họ không cần đăng nhập và chỉ xem được, không sửa được.'}),
-        nameI,h('div',{class:'btn-row'},mk),
+        nameI,h('div',{class:'btn-row full'},mk),
         h('p',{class:'hint',text:'Không chia sẻ: thông tin tính TDEE (tuổi, chiều cao) và bảng thực phẩm.'}));
     }else{
       const link=h('input',{class:'fld',id:'share-link',type:'text',readonly:true,value:shareLink(),'aria-label':'Liên kết chia sẻ'});
@@ -2401,11 +2472,11 @@ function shareSection(){
       arm(off,'Tắt chia sẻ','Chắc chắn tắt? Liên kết sẽ chết',revokeShare);
       kids.push(
         h('p',{class:'hint',text:'Đang chia sẻ. Gửi liên kết này cho người bạn muốn cho xem.'}),
-        link,h('div',{class:'btn-row'},cp,now),
-        nameI,h('div',{class:'btn-row'},sv),
+        link,h('div',{class:'btn-row two'},cp,now),
+        nameI,h('div',{class:'btn-row full'},sv),
         msg,
         h('p',{class:'hint',text:'Ai có liên kết đều xem được. Nếu liên kết bị lộ, hãy tắt chia sẻ rồi tạo liên kết mới. Bản chia sẻ tự cập nhật khi bạn dùng app và đang đăng nhập.'}),
-        h('div',{class:'btn-row'},off));
+        h('div',{class:'btn-row full'},off));
     }
     if(!SHARE.cfg&&SHARE.msg) kids.push(h('p',{class:'msg',text:SHARE.msg}));
   }
