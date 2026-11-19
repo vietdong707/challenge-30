@@ -95,6 +95,7 @@ h1,h2{margin:0}
 h2{font-family:var(--font-display);font-weight:700;font-size:var(--fs-lg);text-transform:uppercase;letter-spacing:.06em;text-wrap:balance}
 .eyebrow{margin:0;font-size:var(--fs-xs);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
 [hidden]{display:none!important}
+.title.cfgtitle{font-size:2rem;text-align:center;color:var(--c3)}
 .title.one{font-size:clamp(1.25rem,5.9vw,2.25rem);white-space:nowrap}
 .cbody{display:flex;flex-direction:column;gap:10px}
 .hint{margin:0;font-size:var(--fs-sm);color:var(--ink-2)}
@@ -115,6 +116,20 @@ h2{font-family:var(--font-display);font-weight:700;font-size:var(--fs-lg);text-t
 .lane i.miss{background:repeating-linear-gradient(135deg,var(--surface-2) 0 3px,var(--line) 3px 5px)}
 .lane i.now{height:28px;box-shadow:inset 0 0 0 2px var(--ink)}
 .lane-ends{display:flex;justify-content:space-between;font-size:var(--fs-xs);color:var(--ink-2);font-variant-numeric:tabular-nums}
+
+/* Compact first screen of the Cập nhật tab */
+.vtoday{gap:12px}
+.vtoday .hero{gap:4px}
+.vtoday .hero .title{margin:0;overflow:hidden;text-overflow:ellipsis}
+.vtoday .daynum{font-size:clamp(3.5rem,16vw,4.5rem)}
+.vtoday .of{font-size:1.5rem}
+.vtoday .dayrow .stat b{font-size:1.75rem}
+.vtoday .stats{gap:16px}
+.vtoday .lane{margin-top:6px}
+.vtoday .section{gap:8px}
+.vtoday .tasks{gap:6px}
+.vtoday .task{min-height:50px;padding:8px 14px}
+.vtoday .calsum{padding:12px 14px}
 
 /* Notes and buttons */
 .note{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;background:var(--surface-2);font-size:var(--fs-sm)}
@@ -170,6 +185,7 @@ h2{font-family:var(--font-display);font-weight:700;font-size:var(--fs-lg);text-t
 .items{display:flex;flex-direction:column;gap:8px}
 .item{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:var(--bg)}
 .iname,.iqty,.iunit,.ikcal{min-width:0;min-height:48px;padding:0 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface)}
+.iqty::placeholder,.iunit::placeholder,.ikcal::placeholder{font-size:var(--fs-xs)}
 .itop{display:flex;align-items:center;gap:6px}
 .itop .iname{flex:1 1 auto;width:auto;padding:0 12px}
 .irow{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1.3fr);gap:8px;align-items:center}
@@ -304,7 +320,7 @@ textarea.fld{padding:10px 12px;min-height:6.5rem;resize:vertical;font-size:var(-
 .tabs button[aria-current="page"]{color:var(--tc);background:var(--ts)}
 .tabs svg{width:22px;height:22px;color:var(--tc)}
 
-.synchead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.synchead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
 .synchead .sync{margin-bottom:0;min-width:0;flex:1 1 auto}
 .synchead .btn{min-height:36px}
 .overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));background:rgba(8,12,20,.6)}
@@ -793,7 +809,7 @@ function viewToday(){
   const stCur=h('b'),stDone=h('b');
   const lane=makeLane();
   const hero=h('header',{class:'hero'},
-    h('p',{class:'eyebrow',text:(READONLY&&VIEW.name)?'Challenge 30 ngày · '+VIEW.name:'Challenge 30 ngày'}),
+    h('p',{class:'title one',text:(READONLY&&VIEW.name)?'Challenge 30 ngày · '+VIEW.name:'Challenge 30 ngày'}),
     h('div',{class:'dayrow'},
       h('div',{class:'dayno'},h('span',{class:'daynum',text:String(idx)}),h('span',{class:'of',text:'/30'})),
       h('div',{class:'stats'},
@@ -884,7 +900,7 @@ function viewToday(){
       sub,menu);
     let autoQ=false;
 
-    const unitOf=f=>item.u||(f?f.u:'g');
+    const unitOf=f=>item.u||(f?f.u:'');
     function paint(){
       const f=lookup(item.n);
       if(document.activeElement!==unitI) unitI.value=unitOf(f);
@@ -895,7 +911,7 @@ function viewToday(){
           ?'Bảng: '+fmtNum(f.k)+' kcal / '+fmtNum(f.b)+' '+f.u+'. Calo của món này đã được sửa tay.'
           :fmtNum(f.k)+' kcal / '+fmtNum(f.b)+' '+f.u)
         :(item.n.trim()?(FOODS.length?'Không thấy trong bảng thực phẩm, hãy nhập calo.':'Nhập calo của món.'):'');
-      const unit=(unitI.value.trim()||unitOf(f));
+      const unit=(unitI.value.trim()||unitOf(f)||'g');
       preview.textContent=(item.n.trim()&&item.q!==null&&item.q>0&&item.k>0)
         ?'Sẽ lưu: '+item.n.trim()+' = '+fmtNum(item.q)+' '+unit+' · '+fmtNum(item.k)+' kcal'
         :'Nhập đủ tên món, khối lượng, ĐVT và calo rồi cập nhật vào bảng thực phẩm.';
@@ -948,7 +964,7 @@ function viewToday(){
       const f=lookup(n);
       if(!n||item.q===null||!(item.q>0)||!(item.k>0)){ sub.textContent='Cần nhập tên món, khối lượng và calo trước khi cập nhật bảng thực phẩm.'; return; }
       if(!f&&FOODS.length>=MAX_FOODS){ sub.textContent='Bảng thực phẩm đã đầy.'; return; }
-      const unit=(unitI.value.trim()||unitOf(f)).slice(0,12);
+      const unit=(unitI.value.trim()||unitOf(f)||'g').slice(0,12);
       setFoods(FOODS.concat([{n:n.slice(0,80),b:item.q,u:unit,k:item.k}]));
       saveFoods();
       if(!f) dl.appendChild(h('option',{value:n}));
@@ -1043,7 +1059,7 @@ function viewToday(){
     if(noteText&&after) noteText.textContent='Thử thách đã kết thúc. Bạn hoàn thành '+sm.count+'/30 ngày.';
   }
 
-  const v=h('div',{class:'view'},h('h1',{class:'sr',text:'Cập nhật'}),hero,note,datebar,tasksSec,S.calGoal===false?null:calSec);
+  const v=h('div',{class:'view vtoday'},h('h1',{class:'sr',text:'Cập nhật'}),hero,note,datebar,tasksSec,S.calGoal===false?null:calSec);
   refresh();
   return v;
 }
@@ -1091,7 +1107,7 @@ function viewCal(){
     else if(st.complete){ cls+=' done'; state='hoàn thành'; }
     else if(st.got>0){ cls+=' part'; state=st.got+'/'+st.needed+' việc'; }
     else if(k<today){ cls+=' miss'; state='chưa làm'; }
-    else state='chưa bắt đầu';
+    else state='đang thực hiện';
     if(k===today) cls+=' now';
     const dot=h('i',{class:'wdot'});
     const b=h('button',{type:'button',class:cls,onclick:()=>selectDate(k)},
@@ -1122,7 +1138,7 @@ function viewCal(){
     wDay.textContent='Cho ngày '+fmtDMY(calSel);
     if(inR){
       const st=status(calSel);
-      chip.textContent=calSel>today?'Chưa tới':st.complete?'Hoàn thành':st.got>0?st.got+'/'+st.needed+' việc':calSel<today?'Chưa làm':'Chưa bắt đầu';
+      chip.textContent=calSel>today?'Chưa tới':st.complete?'Hoàn thành':st.got>0?st.got+'/'+st.needed+' việc':calSel<today?'Chưa làm':'Đang thực hiện';
       chip.className='badge'+(st.complete&&calSel<=today?' ok':'');
     }else{
       chip.textContent='Ngoài 30 ngày';
@@ -1870,7 +1886,7 @@ function viewEdit(){
   }
 
   return h('div',{class:'view'},
-    h('h1',{class:'title',text:'Cấu hình'}),
+    h('h1',{class:'title cfgtitle',text:'Cấu hình'}),
     collapsible(h('section',{class:'group','aria-labelledby':'h-chal'},
       h('h2',{id:'h-chal',text:'Cập nhật challenge'}),
       h('div',{class:'subgroup first','aria-labelledby':'h-start'},
