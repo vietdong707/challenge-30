@@ -162,19 +162,23 @@ h2{font-family:var(--font-display);font-weight:700;font-size:var(--fs-lg);text-t
 .mealblock.m-t{background:var(--m2);border-color:var(--m2b)}
 .mealblock.m-e{background:var(--m3);border-color:var(--m3b)}
 .mealblock .item{background:var(--surface)}
-.mealblock .iname,.mealblock .iqty,.mealblock .ikcal{background:var(--bg)}
+.mealblock .iname,.mealblock .iqty,.mealblock .iunit,.mealblock .ikcal{background:var(--bg)}
 .mhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .mhead h3{margin:0;font-size:var(--fs-md);font-weight:600}
 .mk{font-family:var(--font-display);font-weight:700;font-size:1.5rem;line-height:1;font-variant-numeric:tabular-nums}
 .mk.skipped{font-family:var(--font-body);font-size:var(--fs-sm);font-weight:500;color:var(--ink-2)}
 .items{display:flex;flex-direction:column;gap:8px}
-.item{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:12px;background:var(--bg)}
-.iname,.iqty,.ikcal{min-width:0;min-height:48px;padding:0 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface)}
-.iname{width:100%}
-.irow{display:flex;align-items:center;gap:8px}
-.iq,.ik{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
-.ik{justify-content:flex-end}
+.item{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:var(--bg)}
+.iname,.iqty,.iunit,.ikcal{min-width:0;min-height:48px;padding:0 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface)}
+.itop{display:flex;align-items:center;gap:6px}
+.itop .iname{flex:1 1 auto;width:auto;padding:0 12px}
+.irow{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1.3fr);gap:8px;align-items:center}
+.ik{display:flex;align-items:center;gap:6px;min-width:0}
 .iqty,.ikcal{width:100%;text-align:right;font-variant-numeric:tabular-nums}
+.iunit{width:100%;text-align:center}
+.imenu{display:flex;flex-direction:column;gap:8px;padding-top:2px}
+.imenu .btn{width:100%}
+.imenu p{margin:0}
 .unit{color:var(--ink-2);font-size:var(--fs-sm);flex:none}
 .kv{font-family:var(--font-display);font-weight:700;font-size:1.5rem;line-height:1;font-variant-numeric:tabular-nums}
 .isub{margin:0;font-size:var(--fs-xs);color:var(--ink-2);min-height:1em}
@@ -261,6 +265,7 @@ textarea.fld{padding:10px 12px;min-height:6.5rem;resize:vertical;font-size:var(-
 .btn-row{display:flex;flex-wrap:wrap;gap:8px}
 .btn-row.full .btn{flex:1 1 100%}
 .subgroup{display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--line)}
+.subgroup.first{padding-top:0;border-top:0}
 .subgroup h3{margin:0;font-family:var(--font-display);font-weight:700;font-size:var(--fs-md);text-transform:uppercase;letter-spacing:.06em}
 .btn-row.two{flex-wrap:nowrap}
 .btn-row.two .btn{flex:1 1 0;min-width:0;padding:0 8px;line-height:1.25;text-align:center}
@@ -488,7 +493,8 @@ function cleanItem(i){
     n:typeof i.n==='string'?i.n.slice(0,80):'',
     q:(typeof i.q==='number'&&isFinite(i.q)&&i.q>=0)?i.q:null,
     k:(typeof i.k==='number'&&isFinite(i.k)&&i.k>=0)?Math.round(i.k):0,
-    m:!!i.m
+    m:!!i.m,
+    ...((typeof i.u==='string'&&i.u.trim())?{u:i.u.trim().slice(0,12)}:{})
   };
 }
 function normalize(o){
@@ -727,7 +733,8 @@ const P={
   right:'<path d="M9.5 6l6 6-6 6"/>',
   up:'<path d="M6 14l6-6 6 6"/>',
   down:'<path d="M6 10l6 6 6-6"/>',
-  x:'<path d="M6 6l12 12M18 6L6 18"/>'
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  dots:'<circle cx="5.5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="18.5" cy="12" r="1.3" fill="currentColor"/>'
 };
 function ico(inner){
   const s=document.createElement('span');
@@ -860,44 +867,38 @@ function viewToday(){
     const idp='it-'+item.id;
     const nameI=h('input',{class:'iname',id:idp+'-n',type:'text',autocomplete:'off',placeholder:'Tên món',maxlength:'80','aria-label':m.name+', tên món',list:'food-list',value:item.n,disabled:!editable});
     const qtyI=h('input',{class:'iqty',id:idp+'-q',type:'text',inputmode:'decimal',autocomplete:'off',placeholder:'Khối lượng',maxlength:'7','aria-label':m.name+', khối lượng',value:item.q===null?'':String(item.q),disabled:!editable});
-    const unitS=h('span',{class:'unit',text:'g'});
-    const kcalBox=h('div',{class:'ik'});
+    const unitI=h('input',{class:'iunit',id:idp+'-u',type:'text',autocomplete:'off',placeholder:'ĐVT',maxlength:'12','aria-label':m.name+', đơn vị tính',disabled:!editable});
+    const kcalI=h('input',{class:'ikcal',id:idp+'-k',type:'text',inputmode:'numeric',autocomplete:'off',placeholder:'Calo',maxlength:'5','aria-label':m.name+', calo của món',disabled:!editable});
     const sub=h('p',{class:'isub'});
-    const saveBtn=h('button',{class:'btn small isave',type:'button',hidden:true},'Lưu vào bảng thực phẩm');
-    let kv=null,mode='',autoQ=false;
+    const preview=h('p',{class:'isub'});
+    const upBtn=h('button',{class:'btn small',type:'button'},'Cập nhật bảng thực phẩm');
+    if(READONLY) sub.hidden=true;
+    const menu=h('div',{class:'imenu',hidden:true},preview,upBtn);
+    const more=h('button',{class:'iconbtn',type:'button','aria-label':'Thêm tùy chọn cho món','aria-expanded':'false',disabled:!editable},ico(P.dots));
+    if(READONLY) more.style.display='none';
     const del=h('button',{class:'iconbtn',type:'button','aria-label':'Xóa món',disabled:!editable},ico(P.x));
     if(READONLY) del.style.display='none';
-    const el=h('div',{class:'item'},nameI,h('div',{class:'irow'},h('div',{class:'iq'},qtyI,unitS),kcalBox,del),sub,saveBtn);
+    const el=h('div',{class:'item'},
+      h('div',{class:'itop'},nameI,more,del),
+      h('div',{class:'irow'},qtyI,unitI,h('div',{class:'ik'},kcalI,h('span',{class:'unit',text:'kcal'}))),
+      sub,menu);
+    let autoQ=false;
 
+    const unitOf=f=>item.u||(f?f.u:'g');
     function paint(){
       const f=lookup(item.n);
-      unitS.textContent=f?f.u:'g';
+      if(document.activeElement!==unitI) unitI.value=unitOf(f);
+      if(document.activeElement!==kcalI) kcalI.value=item.k>0?String(item.k):'';
       qtyI.placeholder=f?String(f.b):'Khối lượng';
-      const want=f?'calc':'manual';
-      if(mode!==want){
-        mode=want;
-        kcalBox.replaceChildren();
-        if(f){
-          kv=h('span',{class:'kv'});
-          kcalBox.append(kv,h('span',{class:'unit',text:'kcal'}));
-        }else{
-          kv=null;
-          const ki=h('input',{class:'ikcal',id:idp+'-k',type:'text',inputmode:'numeric',autocomplete:'off',placeholder:'Calo',maxlength:'5','aria-label':m.name+', calo của món',disabled:!editable,value:item.k>0?String(item.k):''});
-          ki.addEventListener('input',()=>{
-            const d=ki.value.replace(/\D/g,'').slice(0,5);
-            if(d!==ki.value) ki.value=d;
-            item.k=d===''?0:Number(d); item.m=true;
-            save(); paint(); refresh();
-          });
-          kcalBox.append(ki,h('span',{class:'unit',text:'kcal'}));
-        }
-      }
-      if(kv) kv.textContent=fmtNum(item.k);
       sub.textContent=f
-        ?fmtNum(f.k)+' kcal / '+fmtNum(f.b)+' '+f.u
+        ?(item.m
+          ?'Bảng: '+fmtNum(f.k)+' kcal / '+fmtNum(f.b)+' '+f.u+'. Calo của món này đã được sửa tay.'
+          :fmtNum(f.k)+' kcal / '+fmtNum(f.b)+' '+f.u)
         :(item.n.trim()?(FOODS.length?'Không thấy trong bảng thực phẩm, hãy nhập calo.':'Nhập calo của món.'):'');
-      if(READONLY) sub.textContent='';
-      saveBtn.hidden=READONLY||!(editable&&!f&&item.n.trim()!==''&&item.q!==null&&item.q>0&&item.k>0&&FOODS.length<MAX_FOODS);
+      const unit=(unitI.value.trim()||unitOf(f));
+      preview.textContent=(item.n.trim()&&item.q!==null&&item.q>0&&item.k>0)
+        ?'Sẽ lưu: '+item.n.trim()+' = '+fmtNum(item.q)+' '+unit+' · '+fmtNum(item.k)+' kcal'
+        :'Nhập đủ tên món, khối lượng, ĐVT và calo rồi cập nhật vào bảng thực phẩm.';
     }
     function recalc(){
       const f=lookup(item.n);
@@ -920,21 +921,42 @@ function viewToday(){
       autoQ=false;
       recalc(); save(); paint(); refresh();
     });
+    unitI.addEventListener('focus',()=>{ try{ unitI.select(); }catch(e){} });
+    unitI.addEventListener('input',()=>{
+      const v=unitI.value.trim().slice(0,12);
+      if(v) item.u=v; else delete item.u;
+      save(); paint();
+    });
+    unitI.addEventListener('blur',()=>{ paint(); });
+    kcalI.addEventListener('input',()=>{
+      const d=kcalI.value.replace(/\D/g,'').slice(0,5);
+      if(d!==kcalI.value) kcalI.value=d;
+      item.k=d===''?0:Number(d); item.m=true;
+      save(); paint(); refresh();
+    });
+    more.addEventListener('click',()=>{
+      menu.hidden=!menu.hidden;
+      more.setAttribute('aria-expanded',menu.hidden?'false':'true');
+    });
     del.addEventListener('click',()=>{
       const md=ensureMeal(key,m.id);
       md.items=md.items.filter(x=>x!==item);
       save(); el.remove(); refresh();
     });
-    saveBtn.addEventListener('click',()=>{
+    upBtn.addEventListener('click',()=>{
       const n=item.n.trim();
-      if(!n||item.q===null||!(item.q>0)||!(item.k>0)||lookup(n)) return;
-      if(FOODS.length>=MAX_FOODS) return;
-      setFoods(FOODS.concat([{n:n.slice(0,80),b:item.q,u:'g',k:item.k}]));
+      const f=lookup(n);
+      if(!n||item.q===null||!(item.q>0)||!(item.k>0)){ sub.textContent='Cần nhập tên món, khối lượng và calo trước khi cập nhật bảng thực phẩm.'; return; }
+      if(!f&&FOODS.length>=MAX_FOODS){ sub.textContent='Bảng thực phẩm đã đầy.'; return; }
+      const unit=(unitI.value.trim()||unitOf(f)).slice(0,12);
+      setFoods(FOODS.concat([{n:n.slice(0,80),b:item.q,u:unit,k:item.k}]));
       saveFoods();
-      dl.appendChild(h('option',{value:n}));
+      if(!f) dl.appendChild(h('option',{value:n}));
       if(noFoods) noFoods.hidden=true;
-      recalc(); save(); paint(); refresh();
-      sub.textContent='Đã lưu vào bảng thực phẩm: '+fmtNum(item.k)+' kcal / '+fmtNum(item.q)+' g.';
+      delete item.u; item.m=false;
+      save(); paint(); refresh();
+      menu.hidden=true; more.setAttribute('aria-expanded','false');
+      sub.textContent=(f?'Đã cập nhật':'Đã thêm')+' bảng thực phẩm: '+n+' = '+fmtNum(item.q)+' '+unit+' · '+fmtNum(item.k)+' kcal.';
     });
     paint();
     return {el,focus(){nameI.focus();}};
@@ -1353,13 +1375,13 @@ function challengeSheets(){
     days.push(row);
   }
   const dayNo=k=>{ const n=diffDays(S.start,k)+1; return (n>=1&&n<=DAYS)?n:''; };
-  const items=[['Ngày thứ','Ngày','Bữa','Món','Khối lượng','Calo (kcal)','Nguồn']];
+  const items=[['Ngày thứ','Ngày','Bữa','Món','Khối lượng','Đơn vị','Calo (kcal)','Nguồn']];
   Object.keys(S.days).sort().forEach(k=>{
     const r=S.days[k];
     MEALS.forEach(m=>{
       const md=r.meals&&r.meals[m.id];
       ((md&&md.items)||[]).filter(isFilled).forEach(it=>{
-        items.push([dayNo(k),fmtDMY(k),m.name,it.n,it.q===null?'':it.q,it.k,it.m?'Nhập tay':'Từ bảng thực phẩm']);
+        items.push([dayNo(k),fmtDMY(k),m.name,it.n,it.q===null?'':it.q,it.u||(lookup(it.n)||{}).u||'',it.k,it.m?'Nhập tay':'Từ bảng thực phẩm']);
       });
     });
   });
@@ -1693,7 +1715,7 @@ function tdeeSection(onApply){
   paint();
 
   return h('section',{class:'group','aria-labelledby':'h-tdee'},
-    h('h2',{id:'h-tdee',text:'Tính mục tiêu từ TDEE'}),
+    h('h2',{id:'h-tdee',text:'Tính mục tiêu calo'}),
     h('p',{class:'hint',text:'Mục tiêu calo = TDEE trừ đi số kcal bạn chọn (mặc định 500). TDEE là tổng năng lượng cơ thể tiêu hao trong ngày, tính theo công thức Mifflin-St Jeor nhân với hệ số vận động.'}),
     h('div',{class:'tdee'},
       h('label',{for:'td-sex'},'Giới tính',sexS),
@@ -1830,34 +1852,48 @@ function viewEdit(){
       h('p',{class:'hint',text:'Áp dụng riêng cho thiết bị này. Máy tính và điện thoại có thể dùng giao diện khác nhau.'}));
   };
 
-  return h('div',{class:'view'},
-    h('h1',{class:'title',text:'Cấu hình'}),
-    h('section',{class:'section','aria-labelledby':'h-start'},
-      h('h2',{id:'h-start',text:'Ngày bắt đầu'}),
-      startInp,endText),
-    collapsible(h('section',{class:'group','aria-labelledby':'h-list'},
-      h('h2',{id:'h-list',text:'Challenge trong ngày'}),
-      h('p',{class:'hint',text:'Việc mới chỉ tính từ hôm nay. Các ngày đã qua giữ nguyên kết quả.'}),
-      list,addForm,
-      h('div',{class:'subgroup','aria-labelledby':'h-kcal'},
-        h('h3',{id:'h-kcal',text:'Mục tiêu calo'}),
-        calPin,
-        calOn?h('label',{class:'hint',for:'cal-target',text:'Tối đa mỗi ngày'}):null,
-        calOn?h('div',{class:'fld-row'},tgt,h('span',{text:'kcal'})):null,
-        calOn?tgtHint:null)),'list'),
-    calOn?collapsible(foodsSection(),'foods'):null,
-    calOn?collapsible(tdeeSection(n=>{ setTarget(n); tgt.value=String(S.target); tgtHintText(); }),'tdee'):null,
-    collapsible(exportSection(),'exp'),
-    collapsible(accountSection(),'acc'),
-    collapsible(shareSection(),'share'),
-    collapsible(h('section',{class:'group','aria-labelledby':'h-backup'},
+  const bkSec=h('section',{class:'group','aria-labelledby':'h-backup'},
       h('h2',{id:'h-backup',text:'Sao lưu'}),
       h('p',{class:'hint',text:'Dữ liệu lưu trong trình duyệt này và sẽ mất nếu bạn xóa dữ liệu trình duyệt. Đăng nhập Google để tự đồng bộ giữa các thiết bị. Bản sao lưu dưới đây là phòng khi cần và không gồm bảng thực phẩm (bảng thực phẩm xuất riêng bằng Excel).'}),
       backupSection(),
       h('p',{class:'eyebrow',text:'Sao lưu thủ công'}),
       ta,
       h('div',{class:'btn-row two'},copyBtn,restoreBtn),
-      msg),'backup'),
+      msg);
+  // turn a finished group into a sub-group of a bigger collapsible
+  function asSub(sec,first){
+    if(!sec) return null;
+    const h2=sec.querySelector('h2');
+    if(h2){ const h3=document.createElement('h3'); h3.id=h2.id; h3.textContent=h2.textContent; h2.replaceWith(h3); }
+    sec.classList.remove('group'); sec.classList.add('subgroup'); if(first) sec.classList.add('first');
+    return sec;
+  }
+
+  return h('div',{class:'view'},
+    h('h1',{class:'title',text:'Cấu hình'}),
+    collapsible(h('section',{class:'group','aria-labelledby':'h-chal'},
+      h('h2',{id:'h-chal',text:'Cập nhật challenge'}),
+      h('div',{class:'subgroup first','aria-labelledby':'h-start'},
+        h('h3',{id:'h-start',text:'Ngày bắt đầu'}),
+        startInp,endText),
+      h('div',{class:'subgroup','aria-labelledby':'h-list'},
+        h('h3',{id:'h-list',text:'Challenge trong ngày'}),
+        h('p',{class:'hint',text:'Việc mới chỉ tính từ hôm nay. Các ngày đã qua giữ nguyên kết quả.'}),
+        list,addForm,
+        h('div',{class:'subgroup','aria-labelledby':'h-kcal'},
+          h('h3',{id:'h-kcal',text:'Mục tiêu calo'}),
+          calPin,
+          calOn?h('label',{class:'hint',for:'cal-target',text:'Tối đa mỗi ngày'}):null,
+          calOn?h('div',{class:'fld-row'},tgt,h('span',{text:'kcal'})):null,
+          calOn?tgtHint:null))),'list'),
+    calOn?collapsible(foodsSection(),'foods'):null,
+    calOn?collapsible(tdeeSection(n=>{ setTarget(n); tgt.value=String(S.target); tgtHintText(); }),'tdee'):null,
+    collapsible(accountSection(),'acc'),
+    collapsible(h('section',{class:'group','aria-labelledby':'h-bks'},
+      h('h2',{id:'h-bks',text:'Sao lưu và chia sẻ'}),
+      asSub(bkSec,true),
+      typeof shareSection==='function'?asSub(shareSection()):null,
+      asSub(exportSection())),'backup'),
     collapsible(h('section',{class:'group','aria-labelledby':'h-danger'},
       h('h2',{id:'h-danger',text:'Xóa dữ liệu'}),
       h('p',{class:'hint',text:'Xóa toàn bộ việc đã làm, bữa ăn, cân nặng và cấu hình challenge để bắt đầu lại.'}),
