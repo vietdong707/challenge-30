@@ -69,6 +69,7 @@
 }
 
 *,*::before,*::after{box-sizing:border-box}
+html{background:var(--bg)}
 body{
   background:var(--bg);
   color:var(--ink);
@@ -264,6 +265,15 @@ textarea.fld{padding:10px 12px;min-height:6.5rem;resize:vertical;font-size:var(-
 .btn-row.two{flex-wrap:nowrap}
 .btn-row.two .btn{flex:1 1 0;min-width:0;padding:0 8px;line-height:1.25;text-align:center}
 .btn.green{background:var(--c2);border-color:var(--c2);color:var(--on-accent)}
+.bkbox{display:flex;flex-direction:column;gap:8px}
+.bkrow{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--bg)}
+.bkrow .bt{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
+.bkrow .bt b{font-size:var(--fs-md)}
+.bkrow .bt span{font-size:var(--fs-sm);color:var(--ink-2)}
+.bkrow .btn{flex:none;min-height:40px;padding:0 14px}
+.undo{position:fixed;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:15;display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:560px;margin:0 auto;padding:12px 14px;border-radius:14px;background:var(--ink);color:var(--bg);box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.undo .btn{flex:none;min-height:40px;background:var(--bg);color:var(--ink);border-color:var(--bg)}
+.dlg-btns .btn.danger{margin-top:10px}
 .btn.add{background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent)}
 .msg{margin:0;font-size:var(--fs-sm);color:var(--ink-2);min-height:1.5em}
 .group{display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid var(--line)}
@@ -1698,7 +1708,7 @@ function tdeeSection(onApply){
     note);
 }
 
-const OPEN={list:false,foods:false,tdee:false,exp:false,acc:false,share:false,backup:false,theme:false};
+const OPEN={list:false,foods:false,tdee:false,exp:false,acc:false,share:false,backup:false,theme:false,danger:false};
 function collapsible(sec,key){
   const hd=sec.querySelector('h2');
   const body=h('div',{class:'cbody',id:'body-'+key});
@@ -1786,10 +1796,10 @@ function viewEdit(){
     try{ n=normalize(JSON.parse(ta.value)); }catch(e){}
     restoreBtn.textContent='Khôi phục'; restoreBtn.classList.remove('armed');
     if(!n){ msg.textContent='Văn bản này không đúng định dạng sao lưu.'; return; }
-    S=n; viewKey=null; save(); render();
+    doWithUndo('Đã khôi phục từ văn bản.',()=>{ S=n; viewKey=null; save(); render(); });
   });
   const resetBtn=h('button',{class:'btn danger',type:'button'},'Xóa toàn bộ và bắt đầu lại');
-  arm(resetBtn,'Xóa toàn bộ và bắt đầu lại',(FB.user?'Chắc chắn xóa hết, cả trên đám mây?':'Chắc chắn xóa hết?'),()=>{ S=fresh(); viewKey=null; save(); go('today'); });
+  resetBtn.addEventListener('click',askReset);
 
   const calOn=S.calGoal!==false;
   const calCb=h('input',{type:'checkbox',id:'cal-on',checked:calOn});
@@ -1843,12 +1853,16 @@ function viewEdit(){
     collapsible(h('section',{class:'group','aria-labelledby':'h-backup'},
       h('h2',{id:'h-backup',text:'Sao lưu'}),
       h('p',{class:'hint',text:'Dữ liệu lưu trong trình duyệt này và sẽ mất nếu bạn xóa dữ liệu trình duyệt. Đăng nhập Google để tự đồng bộ giữa các thiết bị. Bản sao lưu dưới đây là phòng khi cần và không gồm bảng thực phẩm (bảng thực phẩm xuất riêng bằng Excel).'}),
+      backupSection(),
+      h('p',{class:'eyebrow',text:'Sao lưu thủ công'}),
       ta,
       h('div',{class:'btn-row two'},copyBtn,restoreBtn),
       msg),'backup'),
-    collapsible(themeSection(),'theme'),
-    h('section',{class:'group'},
-      h('div',{class:'btn-row full'},resetBtn)));
+    collapsible(h('section',{class:'group','aria-labelledby':'h-danger'},
+      h('h2',{id:'h-danger',text:'Xóa dữ liệu'}),
+      h('p',{class:'hint',text:'Xóa toàn bộ việc đã làm, bữa ăn, cân nặng và cấu hình challenge để bắt đầu lại.'}),
+      h('div',{class:'btn-row full'},resetBtn)),'danger'),
+    collapsible(themeSection(),'theme'));
 }
 
 /* ---------- Shell ---------- */
@@ -2155,6 +2169,7 @@ function localHasData(){
 function clearLocal(){
   S=fresh(); seedFoods(); try{ localStorage.removeItem(FKEY); }catch(e){} viewKey=null; calSel=null;
   localSave();
+  try{ localStorage.removeItem(BK_KEY); }catch(e){}
 }
 function bootNow(){ return new Map(Array.from(localDocs()).map(e=>[e[0],canon(e[1])])); }
 
@@ -2201,7 +2216,7 @@ async function wipeCloud(uid,withShare){
       refs.push(sref);
     }
   }
-  for(const c of ['days','weights','foods']){
+  for(const c of (withShare?['days','weights','foods','backups']:['days','weights','foods'])){
     const s=await m.getDocsFromServer(m.collection(fs,'users',uid,c));
     s.docs.forEach(d=>refs.push(d.ref));
   }
@@ -2527,6 +2542,214 @@ async function startViewer(){
   }catch(e){
     viewerMsg((e&&e.code==='unavailable')?'Không có kết nối mạng. Hãy thử lại khi có mạng.':'Không tải được dữ liệu chia sẻ. Hãy kiểm tra mạng rồi tải lại trang.');
   }
+}
+
+/* ---------- Automatic backups ---------- */
+const BK_KEY='challenge30.bk';
+const BK={cloud:null,cloudAt:0,busy:false,cretry:0};
+const bkRead=()=>{
+  try{ const o=JSON.parse(localStorage.getItem(BK_KEY)||'null'); if(o&&Array.isArray(o.days)) return {days:o.days,pre:o.pre||null,done:o.done||'',cdone:o.cdone||{}}; }catch(e){}
+  return {days:[],pre:null,done:'',cdone:{}};
+};
+function bkWrite(o){
+  try{ localStorage.setItem(BK_KEY,JSON.stringify(o)); return true; }catch(e){}
+  try{ // too big: keep the foods only on the newest daily copy
+    o.days.forEach((d,i)=>{ if(i>0) d.f='[]'; });
+    localStorage.setItem(BK_KEY,JSON.stringify(o)); return true;
+  }catch(e){ return false; }
+}
+function bkSnap(){ return {at:Date.now(),s:JSON.stringify(S),f:JSON.stringify(FOODS),n:{d:Object.keys(S.days).length,f:FOODS.length}}; }
+function bkPayload(sn){
+  let p=JSON.stringify({s:JSON.parse(sn.s),f:JSON.parse(sn.f)});
+  let noFoods=false;
+  if(p.length>900000){ p=JSON.stringify({s:JSON.parse(sn.s),f:[]}); noFoods=true; }
+  return {payload:p,noFoods};
+}
+async function bkCloudSet(id,kind,extra,sn){
+  const m=FB.mods,fs=FB.fs,u=FB.user;
+  if(!m||!fs||!u) throw {code:'nouser'};
+  const pl=bkPayload(sn);
+  const doc=Object.assign({kind,at:sn.at,n:sn.n,payload:pl.payload,noFoods:pl.noFoods},extra||{});
+  await m.setDoc(m.doc(fs,'users',u.uid,'backups',id),doc);
+  BK.cloud=null; BK.cloudAt=0;
+}
+async function bkCloudList(){
+  const m=FB.mods,fs=FB.fs,u=FB.user;
+  const s=await m.getDocsFromServer(m.collection(fs,'users',u.uid,'backups'));
+  const list=s.docs.map(d=>{ const x=d.data()||{}; return {id:d.id,kind:x.kind,day:x.day||'',at:Number(x.at)||0,why:x.why||'',n:x.n||{d:0,f:0}}; });
+  BK.cloud=list; BK.cloudAt=Date.now();
+  return list;
+}
+async function bkCloudDaily(day){
+  const list=await bkCloudList();
+  if(list.some(x=>x.kind==='daily'&&x.day===day)) return;
+  const ids=['d0','d1','d2'];
+  let pick=ids.find(id=>!list.some(x=>x.id===id));
+  if(!pick){
+    const mine=list.filter(x=>ids.indexOf(x.id)>=0).sort((a,b)=>a.day<b.day?-1:a.day>b.day?1:0);
+    pick=mine[0].id;
+  }
+  await bkCloudSet(pick,'daily',{day},bkSnap());
+}
+function bkLocalDaily(day){
+  const o=bkRead(),sn=bkSnap();
+  o.days=o.days.filter(d=>d.day!==day);
+  o.days.unshift({day,at:sn.at,s:sn.s,f:sn.f,n:sn.n});
+  o.days.sort((a,b)=>a.day<b.day?1:a.day>b.day?-1:0);
+  o.days=o.days.slice(0,3);
+  o.done=day;
+  bkWrite(o);
+}
+async function bkTick(){
+  if(READONLY||BK.busy||document.hidden) return;
+  BK.busy=true;
+  try{
+    const day=todayKey();
+    const has=localHasData();
+    const signed=!!FB.user;
+    const synced=signed&&SYNC.ready&&SYNC.state==='ok';
+    if(has&&bkRead().done!==day&&(!signed||synced||performance.now()>30000)) bkLocalDaily(day);
+    if(has&&synced&&Date.now()>=BK.cretry){
+      const uid=FB.user.uid;
+      if((bkRead().cdone||{})[uid]!==day){
+        try{
+          await bkCloudDaily(day);
+          const o=bkRead(); o.cdone=o.cdone||{}; o.cdone[uid]=day; bkWrite(o);
+        }catch(e){ BK.cretry=Date.now()+60000; }
+      }
+    }
+  }catch(e){}
+  BK.busy=false;
+}
+/* A copy taken right before something replaces the data */
+function bkPre(why){
+  const sn=bkSnap();
+  const o=bkRead(); o.pre={at:sn.at,why,s:sn.s,f:sn.f,n:sn.n}; bkWrite(o);
+  if(FB.user&&SYNC.ready) bkCloudSet('pre','pre',{why},sn).catch(()=>{});
+  return sn;
+}
+function bkApply(sn){
+  const st=normalize(JSON.parse(sn.s));
+  if(!st) return false;
+  S=st; viewKey=null; calSel=null;
+  try{ setFoods(JSON.parse(sn.f)); }catch(e){}
+  saveFoods(); save();
+  return true;
+}
+
+/* Undo bar */
+let undoT=0;
+function closeUndo(){ clearInterval(undoT); const u=document.querySelector('.undo'); if(u) u.remove(); }
+function showUndo(text,sn){
+  closeUndo();
+  let left=(typeof window.__undoSecs==='number')?window.__undoSecs:20;
+  const b=h('button',{class:'btn',type:'button'},'Hoàn tác ('+left+')');
+  const bar=h('div',{class:'undo',role:'status'},h('span',{text}),b);
+  b.addEventListener('click',()=>{
+    closeUndo();
+    try{ if(bkApply(sn)){ render(); } }catch(e){}
+  });
+  document.body.append(bar);
+  undoT=setInterval(()=>{
+    left--;
+    if(left<=0){ closeUndo(); return; }
+    b.textContent='Hoàn tác ('+left+')';
+  },1000);
+}
+function doWithUndo(text,fn){
+  const sn=bkPre('replace');
+  fn();
+  showUndo(text,sn);
+}
+
+/* Reset: confirmation that cannot be tapped through */
+function askReset(){
+  let left=(typeof window.__resetWait==='number')?window.__resetWait:10;
+  const gob=h('button',{class:'btn danger small',type:'button',disabled:left>0},left>0?'Xóa hết ('+left+')':'Xóa hết');
+  const keep=dlgBtn('Giữ lại dữ liệu','primary',closeModal);
+  gob.addEventListener('click',()=>{
+    if(gob.disabled) return;
+    closeModal();
+    doWithUndo('Đã xóa toàn bộ dữ liệu challenge.',()=>{ S=fresh(); viewKey=null; save(); go('today'); });
+  });
+  const paras=[
+    'App sẽ xóa việc đã làm, bữa ăn, cân nặng, mục tiêu và cấu hình challenge. Bảng thực phẩm được giữ nguyên.',
+    FB.user?'Bạn đang đăng nhập nên dữ liệu trên đám mây và ở mọi thiết bị cũng bị xóa theo.':'Dữ liệu chỉ nằm trên máy này nên xóa là mất.',
+    'Trước khi xóa, app tự lưu một bản để khôi phục trong Cấu hình → Sao lưu. Sau khi xóa bạn còn 20 giây để bấm Hoàn tác.'
+  ];
+  modal('Xóa toàn bộ dữ liệu challenge?',paras,[keep,gob]);
+  const t=setInterval(()=>{
+    if(!document.body.contains(gob)){ clearInterval(t); return; }
+    left--;
+    if(left>0) gob.textContent='Xóa hết ('+left+')';
+    else{ clearInterval(t); gob.disabled=false; gob.textContent='Xóa hết'; }
+  },1000);
+}
+
+/* Backup list in Cấu hình → Sao lưu */
+const bkFmt=ts=>{ const d=new Date(ts); return pad(d.getDate())+'/'+pad(d.getMonth()+1)+' '+pad(d.getHours())+':'+pad(d.getMinutes()); };
+function bkEntries(){
+  const o=bkRead(),map=new Map();
+  const put=(key,kind,day,at,n,why,patch)=>{
+    const e=map.get(key)||{key,kind,day,at,n,why,local:false,cloud:false};
+    if(at>=e.at){ e.at=at; e.n=n; e.why=why; }
+    Object.assign(e,patch); map.set(key,e);
+  };
+  o.days.forEach(d=>put('d:'+d.day,'daily',d.day,d.at,d.n||{d:0,f:0},'',{local:true}));
+  if(o.pre) put('pre','pre','',o.pre.at,o.pre.n||{d:0,f:0},o.pre.why||'',{local:true});
+  (BK.cloud||[]).forEach(c=>{
+    if(c.kind==='pre') put('pre','pre','',c.at,c.n,c.why,{cloud:true,cid:c.id});
+    else if(c.kind==='daily') put('d:'+c.day,'daily',c.day,c.at,c.n,'',{cloud:true,cid:c.id});
+  });
+  const all=Array.from(map.values()).sort((a,b)=>a.kind==='pre'?-1:b.kind==='pre'?1:(a.day<b.day?1:a.day>b.day?-1:0));
+  const pre=all.filter(e=>e.kind==='pre'),daily=all.filter(e=>e.kind!=='pre').slice(0,3);
+  return pre.concat(daily);
+}
+async function bkLoad(e){
+  const o=bkRead();
+  if(e.local){
+    if(e.kind==='pre'&&o.pre) return {s:o.pre.s,f:o.pre.f};
+    const d=o.days.find(x=>x.day===e.day); if(d) return {s:d.s,f:d.f};
+  }
+  const m=FB.mods;
+  const s=await m.getDocFromServer(m.doc(FB.fs,'users',FB.user.uid,'backups',e.cid));
+  const x=s.exists()?s.data():null;
+  const p=x&&JSON.parse(x.payload);
+  if(!p) throw {code:'missing'};
+  return {s:JSON.stringify(p.s),f:JSON.stringify(p.f||[])};
+}
+function backupSection(){
+  const box=h('div',{class:'bkbox'});
+  const msg=h('p',{class:'msg'});
+  const head=h('p',{class:'hint',text:'Mỗi ngày mở app, app tự lưu 1 bản toàn bộ dữ liệu (giữ 3 ngày gần nhất, bản mới ghi đè bản cũ nhất) trên máy này'+(FB.user?' và trên đám mây.':'. Đăng nhập để có thêm bản trên đám mây.')+' Ngoài ra có 1 bản tự lưu ngay trước khi xóa hoặc khôi phục.'});
+  const rows=h('div',{class:'bkbox'});
+  function paint(){
+    const es=bkEntries();
+    rows.replaceChildren(...(es.length?es.map(e=>{
+      const title=e.kind==='pre'?'Trước khi xóa hoặc khôi phục · '+bkFmt(e.at):'Ngày '+e.day.slice(8)+'/'+e.day.slice(5,7)+' · '+bkFmt(e.at).slice(6);
+      const src=[e.cloud?'đám mây':null,e.local?'máy này':null].filter(Boolean).join(' + ');
+      const b=h('button',{class:'btn',type:'button'},'Khôi phục');
+      arm(b,'Khôi phục','Chắc chắn?',async()=>{
+        b.textContent='Khôi phục'; b.classList.remove('armed');
+        try{
+          const sn=await bkLoad(e);
+          const st=normalize(JSON.parse(sn.s));
+          if(!st){ msg.textContent='Bản sao lưu này không đọc được.'; return; }
+          doWithUndo('Đã khôi phục bản sao lưu.',()=>{ bkApply(sn); render(); });
+        }catch(err){ msg.textContent='Chưa lấy được bản sao lưu. Hãy kiểm tra mạng rồi thử lại.'; }
+      });
+      return h('div',{class:'bkrow'},h('div',{class:'bt'},h('b',{text:title}),h('span',{text:(e.n.d||0)+' ngày dữ liệu · '+(e.n.f||0)+' món · '+src})),b);
+    }):[h('p',{class:'hint',text:'Chưa có bản tự động nào. Bản đầu tiên sẽ được lưu khi bạn mở app có dữ liệu.'})]));
+  }
+  box.append(head,rows,msg);
+  paint();
+  if(FB.user&&SYNC.ready&&Date.now()-BK.cloudAt>60000) bkCloudList().then(paint,()=>{});
+  return box;
+}
+if(!READONLY){
+  setInterval(bkTick,5000);
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) bkTick(); });
+  window.__bkTick=bkTick;
 }
 
 setSyncState('local');
