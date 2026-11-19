@@ -131,6 +131,24 @@ h2{font-family:var(--font-display);font-weight:700;font-size:var(--fs-lg);text-t
 .vtoday .task{min-height:50px;padding:8px 14px}
 .vtoday .calsum{padding:12px 14px}
 
+/* Compact first screen of the Lịch tab */
+.vcal{gap:10px}
+.vcal .hero{gap:2px}
+.vcal .hero .title{margin:0}
+.vcal .cal-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.vcal .stat b{font-size:1.5rem}
+.vcal .stat span{display:block;line-height:1.2}
+.vcal .wk{margin-bottom:2px}
+.vcal .cal-grid{gap:3px}
+.vcal .cell{aspect-ratio:1 / 1.02}
+.vcal .cell .n{font-size:1.25rem}
+.vcal .legend{gap:2px 12px;font-size:.6875rem}
+.vcal .card.daypanel{padding:12px 14px;gap:8px}
+.vcal .daypanel .btn{min-height:44px}
+.vcal .daypanel .fld{min-height:40px}
+.vcal .dp-pick .dp-title{flex:1 1 0;font-size:var(--fs-sm);line-height:1.3}
+.vcal .dp-pick .fld{flex:none;width:9.5rem}
+
 /* Notes and buttons */
 .note{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;background:var(--surface-2);font-size:var(--fs-sm)}
 .note.warn{background:var(--warn-soft);color:var(--warn)}
@@ -183,12 +201,13 @@ h2{font-family:var(--font-display);font-weight:700;font-size:var(--fs-lg);text-t
 .mk{font-family:var(--font-display);font-weight:700;font-size:1.5rem;line-height:1;font-variant-numeric:tabular-nums}
 .mk.skipped{font-family:var(--font-body);font-size:var(--fs-sm);font-weight:500;color:var(--ink-2)}
 .items{display:flex;flex-direction:column;gap:8px}
-.item{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:var(--bg)}
-.iname,.iqty,.iunit,.ikcal{min-width:0;min-height:48px;padding:0 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface)}
+.item{display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:12px;background:var(--bg)}
+.iname,.iqty,.iunit,.ikcal{min-width:0;min-height:40px;padding:0 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface)}
 .iqty::placeholder,.iunit::placeholder,.ikcal::placeholder{font-size:var(--fs-xs)}
 .itop{display:flex;align-items:center;gap:6px}
 .itop .iname{flex:1 1 auto;width:auto;padding:0 12px}
-.irow{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1.3fr);gap:8px;align-items:center}
+.itop .iconbtn{width:40px;height:40px}
+.irow{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1.3fr);gap:6px;align-items:center}
 .ik{display:flex;align-items:center;gap:6px;min-width:0}
 .iqty,.ikcal{width:100%;text-align:right;font-variant-numeric:tabular-nums}
 .iunit{width:100%;text-align:center}
@@ -197,7 +216,8 @@ h2{font-family:var(--font-display);font-weight:700;font-size:var(--fs-lg);text-t
 .imenu p{margin:0}
 .unit{color:var(--ink-2);font-size:var(--fs-sm);flex:none}
 .kv{font-family:var(--font-display);font-weight:700;font-size:1.5rem;line-height:1;font-variant-numeric:tabular-nums}
-.isub{margin:0;font-size:var(--fs-xs);color:var(--ink-2);min-height:1em}
+.isub{margin:0;font-size:var(--fs-xs);color:var(--ink-2);min-height:0}
+.isub:empty{display:none}
 .mfoot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .skip{display:flex;align-items:center;gap:8px;min-height:44px;font-size:var(--fs-sm);color:var(--ink-2)}
 .skip input{width:22px;height:22px;accent-color:var(--accent)}
@@ -883,7 +903,7 @@ function viewToday(){
     const idp='it-'+item.id;
     const nameI=h('input',{class:'iname',id:idp+'-n',type:'text',autocomplete:'off',placeholder:'Tên món',maxlength:'80','aria-label':m.name+', tên món',list:'food-list',value:item.n,disabled:!editable});
     const qtyI=h('input',{class:'iqty',id:idp+'-q',type:'text',inputmode:'decimal',autocomplete:'off',placeholder:'Khối lượng',maxlength:'7','aria-label':m.name+', khối lượng',value:item.q===null?'':String(item.q),disabled:!editable});
-    const unitI=h('input',{class:'iunit',id:idp+'-u',type:'text',autocomplete:'off',placeholder:'ĐVT',maxlength:'12','aria-label':m.name+', đơn vị tính',disabled:!editable});
+    const unitI=h('input',{class:'iunit',id:idp+'-u',type:'text',autocomplete:'off',placeholder:'Đvt',maxlength:'12','aria-label':m.name+', đơn vị tính',disabled:!editable});
     const kcalI=h('input',{class:'ikcal',id:idp+'-k',type:'text',inputmode:'numeric',autocomplete:'off',placeholder:'Calo',maxlength:'5','aria-label':m.name+', calo của món',disabled:!editable});
     const sub=h('p',{class:'isub'});
     const preview=h('p',{class:'isub'});
@@ -1121,7 +1141,7 @@ function viewCal(){
   }
 
   // Selected day: weight entry
-  const dateInp=h('input',{class:'fld',id:'cal-date',type:'date',value:calSel});
+  const dateInp=h('input',{class:'fld',id:'cal-date',type:'date',value:calSel,'aria-label':'Chọn ngày'});
   const info=h('p',{class:'dp-title'});
   const chip=h('span',{class:'badge'});
   const wDay=h('p',{class:'dp-title hint'});
@@ -1204,8 +1224,7 @@ function viewCal(){
 
   const panel=h('section',{class:'card daypanel','aria-labelledby':'h-day'},
     h('div',{class:'dp-head'},h('h2',{id:'h-day',text:'Ngày đã chọn'}),chip),
-    h('div',{class:'dp-row'},h('label',{class:'hint',for:'cal-date',text:'Ngày'}),dateInp),
-    info,
+    h('div',{class:'dp-row dp-pick'},info,dateInp),
     h('div',{class:'btn-row full'},openBtn,wToggle));
   const wPanel=h('section',{class:'card daypanel',id:'wpanel','aria-labelledby':'h-wupd'},
     h('h2',{id:'h-wupd',text:'Cập nhật cân nặng'}),
@@ -1213,10 +1232,10 @@ function viewCal(){
     h('div',{class:'dp-row'},h('label',{class:'hint',for:'cal-weight',text:'Cân nặng'}),wInp,h('span',{class:'unit',text:'kg'})),
     wMsg);
 
-  const v=h('div',{class:'view'},
+  const v=h('div',{class:'view vcal'},
     h('div',{class:'hero'},
-      h('p',{class:'eyebrow',text:fmtDMY(S.start)+' – '+fmtDMY(end)}),
-      h('h1',{class:'title one',text:'Lịch 30 ngày challenge'})),
+      h('h1',{class:'title one',text:'Lịch 30 ngày challenge'}),
+      h('p',{class:'eyebrow',text:fmtDMY(S.start)+' – '+fmtDMY(end)})),
     h('div',{class:'cal-stats'},
       h('div',{class:'stat'},h('b',{text:String(sm.count)}),h('span',{text:'ngày hoàn thành'})),
       h('div',{class:'stat'},h('b',{text:String(sm.cur)}),h('span',{text:'chuỗi hiện tại'})),
