@@ -710,7 +710,9 @@ function ensureMeal(key,mid){
   if(!Array.isArray(r.meals[mid].items)) r.meals[mid].items=[];
   return r.meals[mid];
 }
+let noDrop=false;
 function dropBlankItems(key){
+  if(noDrop) return;
   const r=S.days[key];
   if(!r||!r.meals) return;
   let changed=false;
@@ -901,6 +903,13 @@ function viewToday(){
 
   function buildItemRow(m,item){
     const idp='it-'+item.id;
+    // The row can outlive the object in S (a cloud update replaces S.days). Re-bind by id before every change.
+    function live(){
+      const md=ensureMeal(key,m.id);
+      const f=md.items.find(x=>x.id===item.id);
+      if(!f) md.items.push(item);
+      else if(f!==item){ f.n=item.n; f.q=item.q; f.k=item.k; f.m=item.m; if(item.u) f.u=item.u; else delete f.u; item=f; }
+    }
     const nameI=h('input',{class:'iname',id:idp+'-n',type:'text',autocomplete:'off',placeholder:'Tên món',maxlength:'80','aria-label':m.name+', tên món',list:'food-list',value:item.n,disabled:!editable});
     const qtyI=h('input',{class:'iqty',id:idp+'-q',type:'text',inputmode:'decimal',autocomplete:'off',placeholder:'Khối lượng',maxlength:'7','aria-label':m.name+', khối lượng',value:item.q===null?'':String(item.q),disabled:!editable});
     const unitI=h('input',{class:'iunit',id:idp+'-u',type:'text',autocomplete:'off',placeholder:'Đvt',maxlength:'12','aria-label':m.name+', đơn vị tính',disabled:!editable});
@@ -942,14 +951,18 @@ function viewToday(){
       else item.m=true;
     }
     nameI.addEventListener('input',()=>{
+      live();
+      const wasCat=!item.m; // calories currently come from the table
       item.n=nameI.value;
       const f=lookup(item.n);
+      if(!f&&wasCat) item.k=0; // name moved off the table entry: drop the stale calories
       if(f){
         if(item.q===null||autoQ){ item.q=f.b; qtyI.value=String(f.b); autoQ=true; }
       }else if(autoQ){ item.q=null; qtyI.value=''; autoQ=false; }
       recalc(); save(); paint(); refresh();
     });
     qtyI.addEventListener('input',()=>{
+      live();
       const v=qtyI.value.replace(/[^\d.,]/g,'');
       if(v!==qtyI.value) qtyI.value=v;
       const n=v===''?null:Number(v.replace(',','.'));
@@ -959,12 +972,14 @@ function viewToday(){
     });
     unitI.addEventListener('focus',()=>{ try{ unitI.select(); }catch(e){} });
     unitI.addEventListener('input',()=>{
+      live();
       const v=unitI.value.trim().slice(0,12);
       if(v) item.u=v; else delete item.u;
       save(); paint();
     });
     unitI.addEventListener('blur',()=>{ paint(); });
     kcalI.addEventListener('input',()=>{
+      live();
       const d=kcalI.value.replace(/\D/g,'').slice(0,5);
       if(d!==kcalI.value) kcalI.value=d;
       item.k=d===''?0:Number(d); item.m=true;
@@ -976,7 +991,7 @@ function viewToday(){
     });
     del.addEventListener('click',()=>{
       const md=ensureMeal(key,m.id);
-      md.items=md.items.filter(x=>x!==item);
+      md.items=md.items.filter(x=>x!==item&&x.id!==item.id);
       save(); el.remove(); refresh();
     });
     upBtn.addEventListener('click',()=>{
@@ -984,6 +999,7 @@ function viewToday(){
       const f=lookup(n);
       if(!n||item.q===null||!(item.q>0)||!(item.k>0)){ sub.textContent='Cần nhập tên món, khối lượng và calo trước khi cập nhật bảng thực phẩm.'; return; }
       if(!f&&FOODS.length>=MAX_FOODS){ sub.textContent='Bảng thực phẩm đã đầy.'; return; }
+      live();
       const unit=(unitI.value.trim()||unitOf(f)||'g').slice(0,12);
       setFoods(FOODS.concat([{n:n.slice(0,80),b:item.q,u:unit,k:item.k}]));
       saveFoods();
@@ -1005,6 +1021,7 @@ function viewToday(){
     for(const it of ((md0&&md0.items)||[])) itemsBox.append(buildItemRow(m,it).el);
     const addBtn=h('button',{class:'btn small add',type:'button',disabled:!editable,onclick:()=>{
       const md=ensureMeal(key,m.id);
+      if(md.items.length>=30) return;
       const it={id:newId(),n:'',q:null,k:0,m:true};
       md.items.push(it); save();
       const row=buildItemRow(m,it);
@@ -1044,6 +1061,7 @@ function viewToday(){
       b.mk.classList.toggle('skipped',mi.skip);
       b.itemsBox.hidden=mi.skip;
       b.addBtn.hidden=mi.skip||READONLY;
+      { const dm=(S.days[key]&&S.days[key].meals&&S.days[key].meals[b.m.id])||null; b.addBtn.disabled=!editable||!!(dm&&dm.items.length>=30); }
       b.skipCb.disabled=!editable||(mi.filled>0&&!mi.skip);
     }
 
@@ -2036,7 +2054,7 @@ function busy(){
 let renderPending=false;
 function scheduleRender(){
   if(busy()){ renderPending=true; return; }
-  renderPending=false; render();
+  renderPending=false; noDrop=true; try{ render(); }finally{ noDrop=false; }
 }
 mainEl.addEventListener('focusout',()=>setTimeout(()=>{ if(renderPending) scheduleRender(); },60));
 
@@ -2071,6 +2089,54 @@ function applyDay(id,data){
   S.days[id]=d;
   return !same;
 }
+function mergeItems(bi,li,ri){
+  const bm=new Map(bi.map(x=>[x.id,x])),lm=new Map(li.map(x=>[x.id,x])),rm=new Map(ri.map(x=>[x.id,x]));
+  const out=[];
+  ri.forEach(r=>{
+    const l=lm.get(r.id);
+    if(l) out.push(bm.has(r.id)&&canon(l)===canon(bm.get(r.id))?r:l);
+    else if(!bm.has(r.id)) out.push(r);
+  });
+  li.forEach(l=>{ if(!rm.has(l.id)&&!bm.has(l.id)) out.push(l); });
+  return out.slice(0,30);
+}
+function mergeDay(base,loc,rem){
+  const b=base||{done:[],meals:{}};
+  const all=new Set(rem.done.concat(loc.done));
+  const done=[];
+  all.forEach(x=>{
+    const iB=b.done.includes(x),iL=loc.done.includes(x),iR=rem.done.includes(x);
+    if(iL&&iR) done.push(x); else if(!iB) done.push(x);
+  });
+  const meals={};
+  MEALS.forEach(m=>{
+    const bm=b.meals[m.id]||{items:[],skip:false},lm=loc.meals[m.id],rm=rem.meals[m.id];
+    if(!lm&&!rm) return;
+    const l=lm||{items:[],skip:false},r=rm||{items:[],skip:false};
+    meals[m.id]={items:mergeItems(bm.items,l.items,r.items),skip:(!!l.skip!==!!bm.skip)?!!l.skip:!!r.skip};
+  });
+  const out={done,meals};
+  const tl=loc.tgt,tr=rem.tgt,tb=b.tgt;
+  const tgt=(tl!==tb)?tl:tr;
+  if(typeof tgt==='number') out.tgt=tgt;
+  return out;
+}
+function mergeRemoteDay(id,data,path){
+  if(!isKey(id)||!S.days[id]) return false;
+  const n=normalize({start:S.start,days:{[id]:data}});
+  const rem=n&&n.days[id];
+  if(!rem) return false;
+  let base=null;
+  const raw=SYNC.last.has(path)?SYNC.last.get(path):(SYNC.ready?undefined:SYNC.boot.get(path));
+  if(raw){ try{ const nb=normalize({start:S.start,days:{[id]:JSON.parse(raw)}}); base=nb&&nb.days[id]; }catch(e){ base=null; } }
+  const loc=S.days[id];
+  const merged=mergeDay(base,loc,rem);
+  const changed=canon(merged)!==canon(loc);
+  S.days[id]=merged;
+  SYNC.last.set(path,canon(rem)); SYNC.boot.delete(path);
+  if(canon(merged)!==canon(rem)&&syncHook) syncHook();
+  return changed;
+}
 function removeDay(id){ if(S.days[id]){ delete S.days[id]; return true; } return false; }
 function applyWeight(id,data){
   const kg=data&&data.kg;
@@ -2093,7 +2159,12 @@ function syncDocs(prefix,snap,apply,remove){
       return;
     }
     const data=ch.doc.data();
-    if(!data||canon(data)===SYNC.last.get(path)||dirtyPath(path,docs)) return;
+    if(!data||canon(data)===SYNC.last.get(path)) return;
+    if(dirtyPath(path,docs)){
+      // both sides changed this day: merge instead of letting one overwrite the other
+      if(prefix==='days'&&mergeRemoteDay(id,data,path)) changed=true;
+      return;
+    }
     const r=apply(id,data);
     if(r===null) return;
     if(r) changed=true;
